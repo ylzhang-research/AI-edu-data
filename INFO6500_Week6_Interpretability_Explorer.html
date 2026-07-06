@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INFO 6500 — Interpretability & Fairness Explorer</title>
+<style>
+  :root{--navy:#0F2A43;--teal:#1C9C8C;--amber:#E8963A;--red:#C0533F;--green:#2E8B6F;--slate:#5B6B7B;--mist:#EFF3F6;--ink:#1B2733;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Calibri,Segoe UI,Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.5;}
+  header{background:var(--navy);color:#fff;padding:22px 28px;}
+  header h1{margin:0 0 4px;font-family:Georgia,serif;font-size:26px;}
+  header p{margin:0;color:#C7D4DF;font-size:15px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 28px 60px;}
+  .panel{border:1px solid #D7DEE5;border-radius:10px;padding:20px 22px;margin:22px 0;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+  .panel h2{font-family:Georgia,serif;color:var(--navy);margin:0 0 6px;font-size:21px;}
+  .kicker{color:var(--teal);font-weight:bold;letter-spacing:2px;font-size:12px;text-transform:uppercase;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;}
+  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
+  label{display:block;font-size:14px;margin:12px 0 2px;font-weight:600;color:var(--navy);}
+  .val{color:var(--amber);font-weight:bold;}
+  input[type=range]{width:100%;accent-color:var(--teal);}
+  .readout{background:var(--mist);border-radius:8px;padding:12px 14px;margin-top:10px;}
+  .big{font-family:Georgia,serif;font-weight:bold;font-size:40px;line-height:1;}
+  .muted{color:var(--slate);font-size:13px;}
+  .note{background:#EAF3F1;border-left:6px solid var(--teal);padding:10px 14px;border-radius:4px;margin-top:14px;font-size:14px;}
+  .barrow{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px;}
+  .barrow .name{width:150px;text-align:right;color:var(--ink);}
+  .barrow .track{flex:1;position:relative;height:20px;background:#F1F4F7;border-radius:3px;}
+  .barrow .fill{position:absolute;top:0;height:20px;border-radius:3px;}
+  .barrow .amt{width:52px;font-weight:bold;}
+  table{border-collapse:collapse;width:100%;margin-top:10px;font-size:14px;}
+  th,td{border:1px solid #D7DEE5;padding:7px 10px;text-align:center;}
+  th{background:var(--navy);color:#fff;}
+  .diok{color:var(--green);font-weight:bold;} .dibad{color:var(--red);font-weight:bold;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Interpretability &amp; Fairness Explorer</h1>
+  <p>INFO 6500 · Week 6 · A hands-on companion — no install, nothing saved. Move the sliders and watch what happens.</p>
+</header>
+<div class="wrap">
+
+  <!-- PANEL 1 -->
+  <div class="panel">
+    <div class="kicker">Local interpretability</div>
+    <h2>Why was THIS applicant flagged?</h2>
+    <p class="muted">A simplified credit-default model. Adjust one applicant's features and watch the <b>contribution waterfall</b> — how each feature pushes their risk up (amber) or down (teal) from the baseline. This is the idea behind SHAP.</p>
+    <div class="grid">
+      <div>
+        <label>Debt-to-income: <span class="val" id="dtiV"></span></label>
+        <input type="range" id="dti" min="3" max="70" value="30">
+        <label>Credit history (years): <span class="val" id="histV"></span></label>
+        <input type="range" id="hist" min="0" max="25" value="8">
+        <label>Late payments: <span class="val" id="lateV"></span></label>
+        <input type="range" id="late" min="0" max="10" value="1">
+        <label>Loan amount ($): <span class="val" id="loanV"></span></label>
+        <input type="range" id="loan" min="2000" max="45000" step="500" value="16000">
+        <label>Annual income ($): <span class="val" id="incV"></span></label>
+        <input type="range" id="inc" min="20000" max="160000" step="1000" value="60000">
+      </div>
+      <div>
+        <div class="readout">
+          <div class="muted">Predicted default risk</div>
+          <div class="big" id="risk">—</div>
+          <div class="muted" id="decision"></div>
+        </div>
+        <div id="waterfall" style="margin-top:14px;"></div>
+      </div>
+    </div>
+    <div class="note" id="explain"></div>
+  </div>
+
+  <!-- PANEL 2 -->
+  <div class="panel">
+    <div class="kicker">Fairness</div>
+    <h2>The approval threshold is a fairness lever</h2>
+    <p class="muted">A population of 600 applicants in two groups. Group B has, on average, shorter credit histories and more late payments (a stand-in for historical disadvantage) — <b>the model never sees the group label</b>. Move the approval threshold and watch how outcomes fall across groups.</p>
+    <label>Approve if predicted risk is below: <span class="val" id="thrV"></span></label>
+    <input type="range" id="thr" min="10" max="70" value="45">
+    <table id="fairtab">
+      <thead><tr><th>Group</th><th>Approval rate</th><th>Good applicants wrongly denied</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p style="margin-top:10px;">Disparate-impact ratio (B ÷ A): <span id="di"></span> <span class="muted">— a common rule flags anything below 0.80.</span></p>
+    <div class="note" id="fairnote"></div>
+  </div>
+
+  <p class="muted" style="text-align:center;margin-top:30px;">Synthetic, illustrative model built for INFO 6500. Not a real credit system. Read alongside the Guided Walkthrough and the Responsible-AI Checklist.</p>
+</div>
+
+<script>
+// ---- simplified logistic default-risk model (coefficients chosen for teaching) ----
+var COEF={dti:3.5, histY:-0.10, late:0.45, lti:2.2, inc:-0.000006};
+var B0=-2.28;
+function sig(z){return 1/(1+Math.exp(-z));}
+function logit(f){ // f: {dti(0-1), histY, late, loan, inc}
+  var lti=f.loan/Math.max(f.inc,1);
+  return B0 + COEF.dti*f.dti + COEF.histY*f.histY + COEF.late*f.late + COEF.lti*lti + COEF.inc*f.inc;
+}
+var REF={dti:0.30, histY:8, late:1, loan:16000, inc:60000};
+function contribs(f){
+  var lti=f.loan/Math.max(f.inc,1), rlti=REF.loan/REF.inc;
+  return [
+    {name:"debt-to-income", v:COEF.dti*(f.dti-REF.dti)},
+    {name:"credit history", v:COEF.histY*(f.histY-REF.histY)},
+    {name:"late payments", v:COEF.late*(f.late-REF.late)},
+    {name:"loan-to-income", v:COEF.lti*(lti-rlti)},
+    {name:"income", v:COEF.inc*(f.inc-REF.inc)},
+  ];
+}
+function fmt$(x){return "$"+Math.round(x).toLocaleString();}
+function readApplicant(){
+  return {dti:(+dti.value)/100, histY:+hist.value, late:+late.value, loan:+loan.value, inc:+inc.value};
+}
+function renderApplicant(){
+  var f=readApplicant();
+  dtiV.textContent=(f.dti*100).toFixed(0)+"%"; histV.textContent=f.histY+" yr";
+  lateV.textContent=f.late; loanV.textContent=fmt$(f.loan); incV.textContent=fmt$(f.inc);
+  var r=sig(logit(f));
+  document.getElementById("risk").textContent=(r*100).toFixed(0)+"%";
+  document.getElementById("risk").style.color = r>0.45? "var(--red)":"var(--green)";
+  document.getElementById("decision").textContent = r<0.45? "Below the bank's threshold → likely APPROVED" : "Above the bank's threshold → likely DENIED (needs review)";
+  // waterfall
+  var cs=contribs(f).slice().sort(function(a,b){return Math.abs(b.v)-Math.abs(a.v);});
+  var maxAbs=Math.max.apply(null,cs.map(function(c){return Math.abs(c.v);}).concat([0.6]));
+  var html="";
+  cs.forEach(function(c){
+    var w=Math.abs(c.v)/maxAbs*100/2; // half-width max
+    var up=c.v>=0, color=up?"var(--amber)":"var(--teal)", left=up?50:(50-w);
+    html+='<div class="barrow"><span class="name">'+c.name+'</span>'+
+      '<span class="track"><span class="fill" style="left:'+left+'%;width:'+w+'%;background:'+color+';"></span>'+
+      '<span style="position:absolute;left:50%;top:-3px;bottom:-3px;border-left:1px dashed #9AA7B2;"></span></span>'+
+      '<span class="amt" style="color:'+color+';">'+(up?"+":"")+c.v.toFixed(2)+'</span></div>';
+  });
+  document.getElementById("waterfall").innerHTML='<div class="muted" style="margin-bottom:4px;">Feature contributions (amber raises risk, teal lowers it):</div>'+html;
+  var top=cs[0], top2=cs[1];
+  document.getElementById("explain").innerHTML="<b>One-sentence explanation:</b> this applicant's risk is driven most by <b>"+top.name+"</b>"+(Math.abs(top2.v)>0.05?(" and <b>"+top2.name+"</b>"):"")+" — exactly the kind of plain-language reason you'd give a regulator or the applicant.";
+}
+[dti,hist,late,loan,inc].forEach(function(el){el.addEventListener("input",renderApplicant);});
+
+// ---- Panel 2: synthetic population + threshold explorer ----
+function lcg(seed){return function(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};}
+function randn(rng){var u=0,v=0;while(u===0)u=rng();while(v===0)v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function pois(rng,l){var L=Math.exp(-l),k=0,p=1;do{k++;p*=rng();}while(p>L);return k-1;}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+function makePop(){
+  var rng=lcg(606), pop=[];
+  for(var i=0;i<600;i++){
+    var g = i<390? "A":"B";           // ~65% A
+    var histY = clamp((g==="A"? 9:5)+randn(rng)*3.5, 0, 30);
+    var late  = clamp(pois(rng, g==="A"?0.8:1.3), 0, 12);
+    var dti   = clamp(0.30+randn(rng)*0.10, 0.03, 0.75);
+    var inc   = clamp((g==="A"?62000:56000)+randn(rng)*20000, 18000, 200000);
+    var loan  = clamp(16000+randn(rng)*7000, 1500, 50000);
+    var f={dti:dti, histY:histY, late:late, loan:loan, inc:inc};
+    var risk=sig(logit(f));
+    var trueDefault = rng() < risk ? 1:0;   // simulate outcome
+    pop.push({g:g, risk:risk, def:trueDefault});
+  }
+  return pop;
+}
+var POP=makePop();
+function renderFair(){
+  var t=(+thr.value)/100; thrV.textContent=(t*100).toFixed(0)+"% risk";
+  var stat={A:{n:0,appr:0,goodN:0,goodDenied:0},B:{n:0,appr:0,goodN:0,goodDenied:0}};
+  POP.forEach(function(p){var s=stat[p.g];s.n++;var approved=p.risk<t;if(approved)s.appr++;
+    if(p.def===0){s.goodN++;if(!approved)s.goodDenied++;}});
+  function rate(x,n){return n? x/n:0;}
+  var aAppr=rate(stat.A.appr,stat.A.n), bAppr=rate(stat.B.appr,stat.B.n);
+  var aWD=rate(stat.A.goodDenied,stat.A.goodN), bWD=rate(stat.B.goodDenied,stat.B.goodN);
+  var tb=document.querySelector("#fairtab tbody");
+  tb.innerHTML=
+    "<tr><td><b>A</b> ("+stat.A.n+")</td><td>"+(aAppr*100).toFixed(0)+"%</td><td>"+(aWD*100).toFixed(0)+"%</td></tr>"+
+    "<tr><td><b>B</b> ("+stat.B.n+")</td><td>"+(bAppr*100).toFixed(0)+"%</td><td>"+(bWD*100).toFixed(0)+"%</td></tr>";
+  var di = aAppr>0? bAppr/aAppr : 0;
+  var diEl=document.getElementById("di");
+  diEl.textContent=di.toFixed(2);
+  diEl.className = di<0.80? "dibad":"diok";
+  document.getElementById("fairnote").innerHTML =
+    "Notice: at almost every threshold, Group B is approved less often <i>and</i> its good applicants are denied more often — even though the model never used the group label. The disparity rides in through correlated features (shorter credit history, more late payments). Lowering the bar helps both groups but doesn't close the <i>gap</i>; closing it takes a deliberate mitigation.";
+}
+thr.addEventListener("input",renderFair);
+renderApplicant(); renderFair();
+</script>
+</body>
+</html>
