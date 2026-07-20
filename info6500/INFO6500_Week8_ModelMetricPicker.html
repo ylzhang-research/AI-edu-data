@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INFO 6500 — Model &amp; Metric Picker</title>
+<style>
+  :root{
+    --navy:#0F2A43; --teal:#1C9C8C; --amber:#E8963A; --slate:#5B6B7B;
+    --mist:#EFF3F6; --ink:#1B2733; --good:#157F5F; --bad:#B4453A;
+    --line:#D7DEE5; --white:#fff; --sand:#FFF8EE;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--mist);color:var(--ink);
+       font-family:Calibri,"Segoe UI",system-ui,-apple-system,sans-serif;line-height:1.55}
+  .wrap{max-width:900px;margin:0 auto;padding:22px 18px 60px}
+  header{background:var(--navy);color:#fff;border-radius:12px;padding:22px 26px;margin-bottom:18px}
+  header h1{margin:0 0 4px;font-family:Georgia,serif;font-size:26px;font-weight:700}
+  header p{margin:0;opacity:.85;font-size:15px}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:16px}
+  h2{font-family:Georgia,serif;color:var(--navy);margin:0 0 6px;font-size:19px}
+  h3{font-family:Georgia,serif;color:var(--navy);margin:0 0 10px;font-size:16px}
+  p.lead{color:var(--slate);margin:0 0 16px;font-size:15px}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .preset{border:1px solid var(--line);background:var(--sand);border-radius:8px;padding:9px 14px;
+          cursor:pointer;font-size:14px;font-family:inherit;color:var(--navy);transition:.15s}
+  .preset:hover{border-color:var(--amber)}
+  .q{margin-bottom:20px}
+  .q .qtext{font-weight:700;color:var(--navy);margin-bottom:9px;font-size:15.5px}
+  .q .qhint{color:var(--slate);font-size:13.5px;margin:-4px 0 9px}
+  .opts{display:flex;flex-wrap:wrap;gap:8px}
+  .o{border:1.5px solid var(--line);background:var(--white);border-radius:9px;padding:10px 16px;
+     cursor:pointer;font-size:14.5px;font-family:inherit;color:var(--ink);transition:.15s;text-align:left}
+  .o:hover{border-color:var(--teal);background:#F7FCFB}
+  .o.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+  .stepnum{display:inline-block;width:23px;height:23px;line-height:23px;text-align:center;border-radius:50%;
+     background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;margin-right:9px;font-family:Georgia,serif}
+  /* result */
+  #result{border-left:5px solid var(--teal)}
+  .rec{background:var(--mist);border-radius:10px;padding:16px 18px;margin-bottom:12px}
+  .rec .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);font-weight:700;margin-bottom:5px}
+  .rec .val{font-size:20px;font-weight:700;color:var(--navy);font-family:Georgia,serif;margin-bottom:6px}
+  .rec .why{font-size:14.5px;color:var(--ink)}
+  .alt{font-size:14px;color:var(--slate);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+  ul.watch{margin:8px 0 0;padding-left:20px}
+  ul.watch li{margin-bottom:7px;font-size:14.5px}
+  .say{background:var(--sand);border-left:4px solid var(--amber);border-radius:0 8px 8px 0;
+       padding:13px 16px;margin-top:12px;font-size:15px;font-style:italic;color:var(--ink)}
+  .trace{font-size:13px;color:var(--slate);margin-top:14px;padding-top:12px;border-top:1px solid var(--mist)}
+  .trace b{color:var(--navy);font-style:normal}
+  .hide{display:none}
+  .btn{background:var(--teal);color:#fff;border:0;border-radius:8px;padding:11px 22px;font-size:15px;
+       font-weight:700;cursor:pointer;font-family:inherit}
+  .btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line)}
+  .btn:hover{filter:brightness(1.06)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  footer{text-align:center;color:var(--slate);font-size:13px;margin-top:26px}
+  @media(max-width:600px){.wrap{padding:14px 12px 40px}.card{padding:18px}.o{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Model &amp; Metric Picker</h1>
+    <p>Describe your problem in plain business terms. Get the algorithm, the metric, and the reasoning behind both.</p>
+  </header>
+
+  <section class="card">
+    <h2>Start from a course scenario</h2>
+    <p class="lead">Or answer the questions below from scratch.</p>
+    <div class="presets" id="presets"></div>
+  </section>
+
+  <section class="card">
+    <h2>Your problem</h2>
+    <p class="lead">Answer in order — later questions appear once they become relevant.</p>
+    <div id="questions"></div>
+    <div class="row">
+      <button class="btn ghost" id="resetBtn">Start over</button>
+    </div>
+  </section>
+
+  <section class="card hide" id="result"></section>
+
+  <footer>INFO 6500 — Machine Learning · Week 8. A guide to judgment, not a substitute for it.</footer>
+</div>
+
+<script>
+/* =================== question definitions =================== */
+const Q = {
+  goal:{
+    text:"What are you trying to produce?",
+    hint:"This single choice decides the whole family of methods.",
+    opts:[
+      {v:"number",   t:"A number (e.g., cost, spend, demand)"},
+      {v:"category", t:"A category or yes/no (e.g., will they churn?)"},
+      {v:"groups",   t:"Groups nobody labeled (segments)"},
+      {v:"reduce",   t:"Fewer dimensions / a 2-D picture"}
+    ]},
+  /* ---- regression branch ---- */
+  reg_priority:{
+    show:s=>s.goal==="number",
+    text:"What matters more to your stakeholder?",
+    hint:"The interpretability/accuracy trade-off, made explicit.",
+    opts:[
+      {v:"explain",  t:"Explaining the drivers"},
+      {v:"accuracy", t:"Squeezing out predictive accuracy"}
+    ]},
+  reg_features:{
+    show:s=>s.goal==="number"&&s.reg_priority==="explain",
+    text:"How many predictors, and are they redundant?",
+    opts:[
+      {v:"few",  t:"A handful, well understood"},
+      {v:"many", t:"Many, some correlated or redundant"}
+    ]},
+  reg_bigerr:{
+    show:s=>s.goal==="number",
+    text:"Are unusually large misses especially costly?",
+    hint:"E.g., badly under-pricing one huge claim hurts far more than being slightly off on many small ones.",
+    opts:[
+      {v:"yes", t:"Yes — big errors hurt disproportionately"},
+      {v:"no",  t:"No — treat every dollar of error equally"}
+    ]},
+  /* ---- classification branch ---- */
+  cls_balance:{
+    show:s=>s.goal==="category",
+    text:"How common is the outcome you care about?",
+    opts:[
+      {v:"balanced", t:"Roughly balanced classes"},
+      {v:"rare",     t:"Rare — well under ~20% of cases"}
+    ]},
+  cls_cost:{
+    show:s=>s.goal==="category",
+    text:"Which mistake is more expensive?",
+    hint:"A false negative = you missed a real case. A false positive = a false alarm.",
+    opts:[
+      {v:"fn",   t:"Missing a real case (false negative)"},
+      {v:"fp",   t:"A false alarm (false positive)"},
+      {v:"both", t:"About equally costly"}
+    ]},
+  cls_explain:{
+    show:s=>s.goal==="category",
+    text:"Must someone justify individual decisions?",
+    hint:"Lending, hiring, healthcare and similar high-stakes settings usually demand a defensible reason per decision.",
+    opts:[
+      {v:"yes", t:"Yes — regulated or high-stakes"},
+      {v:"no",  t:"No — accuracy comes first"}
+    ]},
+  /* ---- clustering branch ---- */
+  clu_k:{
+    show:s=>s.goal==="groups",
+    text:"Do you have a sense of how many segments you want?",
+    opts:[
+      {v:"yes", t:"Roughly — say 3 to 6"},
+      {v:"no",  t:"No idea; I want to explore"}
+    ]},
+  clu_size:{
+    show:s=>s.goal==="groups",
+    text:"How big is the dataset?",
+    opts:[
+      {v:"large", t:"Thousands of rows or more"},
+      {v:"small", t:"Small to moderate (a few thousand or fewer)"}
+    ]},
+  /* ---- dimensionality branch ---- */
+  red_purpose:{
+    show:s=>s.goal==="reduce",
+    text:"What is the reduction for?",
+    opts:[
+      {v:"viz",      t:"Seeing the data in two dimensions"},
+      {v:"compress", t:"Compressing inputs before modeling or clustering"},
+      {v:"noise",    t:"Stripping out correlated, redundant features"}
+    ]}
+};
+
+/* =================== presets =================== */
+const PRESETS = [
+  {name:"Will this customer churn? (capstone)",  state:{goal:"category", cls_balance:"rare", cls_cost:"fn", cls_explain:"no"}},
+  {name:"What will this insurance claim cost? (Lab 2)", state:{goal:"number", reg_priority:"explain", reg_features:"few", reg_bigerr:"no"}},
+  {name:"Should we approve this credit application? (Week 6)", state:{goal:"category", cls_balance:"balanced", cls_cost:"fn", cls_explain:"yes"}},
+  {name:"Which customers group together? (Week 7)", state:{goal:"groups", clu_k:"yes", clu_size:"large"}},
+  {name:"Too many correlated features to plot (Week 7)", state:{goal:"reduce", red_purpose:"viz"}}
+];
+
+/* =================== state + rendering =================== */
+let S = {};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const visible = () => Object.keys(Q).filter(k => !Q[k].show || Q[k].show(S));
+
+function render(){
+  const keys = visible();
+  $("questions").innerHTML = keys.map((k, i) => {
+    const q = Q[k];
+    return '<div class="q"><div class="qtext"><span class="stepnum">' + (i+1) + '</span>' + esc(q.text) + '</div>' +
+      (q.hint ? '<div class="qhint">' + esc(q.hint) + '</div>' : '') +
+      '<div class="opts">' + q.opts.map(o =>
+        '<button class="o' + (S[k]===o.v ? ' on' : '') + '" data-k="' + k + '" data-v="' + o.v + '">' +
+        esc(o.t) + '</button>').join("") + '</div></div>';
+  }).join("");
+  // drop answers whose question is no longer visible
+  Object.keys(S).forEach(k => { if (!keys.includes(k)) delete S[k]; });
+  const done = keys.every(k => S[k]);
+  if (done && keys.length > 1) recommend(); else $("result").classList.add("hide");
+}
+
+$("questions").addEventListener("click", e => {
+  const b = e.target.closest(".o"); if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  render();
+  if (!$("result").classList.contains("hide"))
+    $("result").scrollIntoView({behavior:"smooth", block:"nearest"});
+});
+$("resetBtn").onclick = () => { S = {}; render(); window.scrollTo({top:0,behavior:"smooth"}); };
+$("presets").innerHTML = PRESETS.map((p,i) => '<button class="preset" data-p="' + i + '">' + esc(p.name) + '</button>').join("");
+$("presets").addEventListener("click", e => {
+  const b = e.target.closest("[data-p]"); if (!b) return;
+  S = { ...PRESETS[b.dataset.p].state }; render();
+  $("result").scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+/* =================== the recommendation engine =================== */
+function recommend(){
+  let model, why, alt, metric, metricWhy, watch = [], say, trace = [];
+  const SCALE = "These methods use distances or penalties, so <b>standardize your features</b> — and fit the scaler on the training split only.";
+  const LEAK = "Split before you fit any learned transform (scaler, imputer, encoder). Leakage is the fastest way to a great score that fails in production.";
+
+  /* ---------- REGRESSION ---------- */
+  if (S.goal === "number") {
+    trace.push("predicting a continuous number → regression");
+    if (S.reg_priority === "explain" && S.reg_features === "few") {
+      model = "Linear regression";
+      why = "With a handful of well-understood predictors and interpretation as the priority, a linear model gives you a coefficient per feature — a direct, defensible statement like “each extra year of tenure is worth about $X.”";
+      alt = "If you suspect an effect differs by group (e.g., smoker vs non-smoker), add an interaction term before reaching for anything fancier.";
+      trace.push("interpretation first + few predictors → linear");
+    } else if (S.reg_priority === "explain" && S.reg_features === "many") {
+      model = "Ridge or Lasso regression (regularized linear)";
+      why = "You want interpretability but have many, partly redundant predictors. Regularization stabilizes the coefficients: <b>Lasso</b> drives some to exactly zero (built-in feature selection, a shorter story to tell); <b>Ridge</b> shrinks them all while keeping every feature.";
+      alt = "Choose Lasso when you want a shorter list of drivers; Ridge when correlated predictors should share credit rather than have one arbitrarily win.";
+      watch.push(SCALE);
+      trace.push("interpretation first + many/correlated predictors → regularized linear");
+    } else {
+      model = "Gradient boosting (or random forest) regressor";
+      why = "Accuracy is the priority, so an ensemble of trees will capture nonlinearities and interactions automatically — usually beating a linear model out of the box.";
+      alt = "Still fit a linear regression as your baseline. If the ensemble cannot beat it meaningfully, prefer the simpler, explainable model.";
+      watch.push("You lose the readable coefficient story. Recover interpretation with <b>SHAP values</b> or permutation importance before presenting to stakeholders.");
+      watch.push("Boosting overfits if run too long — use early stopping on a validation set and a modest learning rate.");
+      trace.push("accuracy first → tree ensemble");
+    }
+    if (S.reg_bigerr === "yes") {
+      metric = "RMSE (root mean squared error)";
+      metricWhy = "RMSE squares the errors, so it punishes the occasional large miss far more than several small ones — which matches your stated cost structure.";
+      trace.push("large errors disproportionately costly → RMSE");
+    } else {
+      metric = "MAE (mean absolute error)";
+      metricWhy = "MAE is the average miss in the target's own units — “we are typically off by about $1,600” is a sentence any manager can act on. Report R² alongside it as context for how much variation you explain, but drive decisions with MAE.";
+      trace.push("errors weighted equally → MAE, in business units");
+    }
+    say = "“Our model predicts " + (S.reg_bigerr==="yes" ? "cost, and we track large misses closely because they are the expensive ones" : "cost to within roughly $X on a typical case") + ", and here are the factors that move it most.”";
+  }
+
+  /* ---------- CLASSIFICATION ---------- */
+  else if (S.goal === "category") {
+    trace.push("predicting a label → classification");
+    if (S.cls_explain === "yes") {
+      model = "Logistic regression (or a shallow decision tree)";
+      why = "In a regulated or high-stakes setting you must be able to defend an individual decision. Logistic regression yields a per-feature contribution and a probability; a shallow tree yields a readable set of rules. Both survive scrutiny in a way a 500-tree ensemble does not.";
+      alt = "If accuracy is badly lacking, you may fit an ensemble as a challenger — but plan for SHAP explanations and a documented human review step.";
+      trace.push("decisions must be justified → interpretable model");
+    } else {
+      model = "Random forest or gradient boosting classifier";
+      why = "With accuracy as the priority, a tree ensemble handles nonlinearity and mixed feature types well and is a strong default for tabular business data.";
+      alt = "Always fit logistic regression first as your baseline — it is fast, interpretable, and surprisingly hard to beat on modest tabular data.";
+      watch.push("Explain the model before you present it: feature importance or SHAP, not just a score.");
+      trace.push("accuracy first → tree ensemble");
+    }
+    if (S.cls_balance === "rare") {
+      watch.push("Your positive class is rare, so <b>accuracy is a trap</b> — a model predicting “no” for everyone can look excellent while catching nobody. Always compare against that baseline.");
+      watch.push("Use <b>class_weight='balanced'</b> or tune the decision threshold. A model with good ranking (ROC-AUC) can still flag almost nobody at the default 0.50 cutoff.");
+      trace.push("rare positive class → rebalance and rethink the threshold");
+    }
+    if (S.cls_cost === "fn") {
+      metric = "Recall (with precision reported as a guardrail)";
+      metricWhy = "Missing a real case is your expensive error, so you want coverage of the actual positives. Accept more false alarms — but watch precision so the flagged list stays usable.";
+      trace.push("false negatives costlier → optimize recall");
+    } else if (S.cls_cost === "fp") {
+      metric = "Precision (with recall reported as a guardrail)";
+      metricWhy = "False alarms are your expensive error, so what matters is that the cases you flag are genuinely positive. Raise the threshold and accept that you will miss some.";
+      trace.push("false positives costlier → optimize precision");
+    } else if (S.cls_balance === "rare") {
+      metric = "F1 or PR-AUC (precision-recall)";
+      metricWhy = "With both errors roughly equally costly and a rare positive class, F1 balances precision and recall in one number; PR-AUC summarizes that balance across every threshold, and is more honest than ROC when positives are scarce.";
+      trace.push("symmetric costs + imbalance → F1 / PR-AUC");
+    } else {
+      metric = "ROC-AUC, alongside the confusion matrix";
+      metricWhy = "With balanced classes and symmetric costs, accuracy is defensible — but ROC-AUC measures ranking quality independent of any threshold, and the confusion matrix shows exactly which mistakes you are making.";
+      trace.push("balanced + symmetric costs → ROC-AUC + confusion matrix");
+    }
+    watch.push("Choosing the threshold is a business and ethical decision, not a technical default: it decides who bears the false positives and who bears the false negatives.");
+    if (S.cls_explain === "yes")
+      watch.push("Run a <b>fairness audit</b> across groups (compare error rates, not just approval rates) and keep a human in the loop on consequential decisions.");
+    say = "“The model flags the customers most likely to " + (S.cls_cost==="fp" ? "qualify, and we only act when it is confident" : "act, and we would rather over-include than miss someone") + ". Here is what drives a flag, and here is where a person reviews it.”";
+  }
+
+  /* ---------- CLUSTERING ---------- */
+  else if (S.goal === "groups") {
+    trace.push("no labeled target → unsupervised clustering");
+    if (S.clu_size === "large") {
+      model = "K-Means" + (S.clu_k === "no" ? ", swept across a range of k" : "");
+      why = "K-Means scales comfortably to thousands of rows. " + (S.clu_k === "yes"
+        ? "Since you have a working range for k, fit a few values and compare."
+        : "Since you do not know k, fit several values and read the <b>elbow</b> of the inertia curve alongside the <b>silhouette</b> score.");
+      alt = "Hierarchical clustering gives a lovely dendrogram, but its cost grows roughly with the square of the rows — impractical at this size. Cluster a random sample if you want to see the tree.";
+      trace.push("large dataset → K-Means scales; hierarchical does not");
+    } else {
+      model = S.clu_k === "no" ? "Hierarchical clustering (with a dendrogram)" : "K-Means, with hierarchical as a cross-check";
+      why = S.clu_k === "no"
+        ? "On a smaller dataset with no prior sense of k, hierarchical clustering builds the whole nested tree first — you cut the dendrogram wherever the structure suggests, instead of committing to k up front."
+        : "You have a target range for k and a manageable dataset, so K-Means is the efficient choice; a dendrogram makes a good sanity check on whether that k matches the natural structure.";
+      alt = "Running both and seeing whether they agree is strong evidence your segments are real rather than an artifact of one algorithm.";
+      trace.push("smaller dataset → dendrogram is affordable");
+    }
+    metric = "Silhouette score + business validation";
+    metricWhy = "There is no answer key in clustering. Silhouette measures whether points sit closer to their own cluster than the next one; but the decisive test is whether the segments are <b>distinct, nameable, and actionable</b> to the business. A statistically tidy segmentation nobody can act on has failed.";
+    watch.push(SCALE);
+    watch.push("Expect modest silhouette values on real behavioral data (0.15–0.30 is common). Treat segments as <b>hypotheses to validate</b>, not discovered truth.");
+    watch.push("Finish the job: profile each cluster, give it a name a marketer would use, and attach a <b>different action</b> to each. Cluster IDs mean nothing to a stakeholder.");
+    trace.push("no ground truth → silhouette plus business sense");
+    say = "“We found N distinct customer groups. Here is who is in each, and the one thing we should do differently for each.”";
+  }
+
+  /* ---------- DIMENSIONALITY REDUCTION ---------- */
+  else {
+    trace.push("reducing dimensions → PCA");
+    model = "PCA (principal component analysis)";
+    if (S.red_purpose === "viz") {
+      why = "Plotting the first two principal components gives you the best available two-dimensional view of the data's main structure — ideal for eyeballing whether groups separate at all.";
+      metric = "Cumulative variance explained by PC1 + PC2";
+      metricWhy = "Your 2-D picture is only trustworthy to the extent those two components carry the variance. If they explain 85%, the plot is a fair summary; if they explain 30%, treat it with real caution.";
+      trace.push("purpose is visualization → first two components");
+    } else if (S.red_purpose === "compress") {
+      why = "PCA re-expresses correlated features as a smaller set of uncorrelated components, so downstream models and distance-based methods work in a cleaner, lower-dimensional space.";
+      metric = "Number of components to reach ~80–90% variance (read off a scree plot)";
+      metricWhy = "The scree plot shows variance captured per component; keep components up to the point the curve flattens, which retains the signal while discarding most of the noise.";
+      trace.push("purpose is compression → scree plot decides how many to keep");
+    } else {
+      why = "Highly correlated features carry duplicate information. PCA collapses that redundancy into orthogonal components, which stabilizes models that struggle with multicollinearity.";
+      metric = "Variance explained, plus the component loadings";
+      metricWhy = "Variance explained tells you how much you kept; the loadings tell you what each component actually represents, so you can still give it a human name.";
+      trace.push("purpose is de-correlating → inspect loadings");
+    }
+    alt = "PCA is unsupervised — it maximizes variance, not usefulness for your target. If prediction is the goal, compare against simply keeping the original features.";
+    watch.push(SCALE + " Without it, a feature measured in dollars will dominate one measured 1–5 purely because of units.");
+    watch.push("Components are combinations of your original features, so they are <b>harder to explain</b>. Read the loadings before you name them in a presentation.");
+    say = "“We compressed 15 overlapping measures into a few underlying dimensions — essentially ‘engagement’ and ‘spend’ — which is what these charts show.”";
+  }
+
+  watch.push(LEAK);
+
+  $("result").classList.remove("hide");
+  $("result").innerHTML =
+    '<h2>Your recommendation</h2>' +
+    '<div class="rec"><div class="lbl">Model</div><div class="val">' + model + '</div>' +
+      '<div class="why">' + why + '</div>' + (alt ? '<div class="alt"><b>Alternative:</b> ' + alt + '</div>' : '') + '</div>' +
+    '<div class="rec"><div class="lbl">Metric to judge it by</div><div class="val">' + metric + '</div>' +
+      '<div class="why">' + metricWhy + '</div></div>' +
+    '<h3 style="margin-top:18px">Watch out for</h3><ul class="watch">' +
+      watch.map(w => '<li>' + w + '</li>').join("") + '</ul>' +
+    '<div class="say"><b style="font-style:normal">Say it like this:</b> ' + say + '</div>' +
+    '<div class="trace"><b>How we got here:</b> ' + trace.join(" → ") + '</div>';
+}
+
+render();
+</script>
+</body>
+</html>

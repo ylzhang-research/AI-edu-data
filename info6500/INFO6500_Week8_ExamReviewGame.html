@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INFO 6500 — Final Exam Review</title>
+<style>
+  :root{
+    --navy:#0F2A43; --teal:#1C9C8C; --amber:#E8963A; --slate:#5B6B7B;
+    --mist:#EFF3F6; --ink:#1B2733; --good:#157F5F; --bad:#B4453A;
+    --line:#D7DEE5; --white:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--mist);color:var(--ink);
+       font-family:Calibri,"Segoe UI",system-ui,-apple-system,sans-serif;line-height:1.55}
+  .wrap{max-width:860px;margin:0 auto;padding:22px 18px 60px}
+  header{background:var(--navy);color:#fff;border-radius:12px;padding:22px 26px;margin-bottom:20px}
+  header h1{margin:0 0 4px;font-family:Georgia,serif;font-size:26px;font-weight:700}
+  header p{margin:0;opacity:.85;font-size:15px}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:16px}
+  h2{font-family:Georgia,serif;color:var(--navy);margin:0 0 12px;font-size:20px}
+  h3{font-family:Georgia,serif;color:var(--navy);margin:22px 0 8px;font-size:16px}
+  p.lead{color:var(--slate);margin:0 0 18px}
+  label.fieldlabel{display:block;font-weight:700;color:var(--navy);margin:16px 0 8px;font-size:14px;
+        text-transform:uppercase;letter-spacing:.04em}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:var(--white);border-radius:20px;padding:8px 16px;
+        cursor:pointer;font-size:14px;color:var(--ink);transition:.15s;font-family:inherit}
+  .chip:hover{border-color:var(--teal)}
+  .chip.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+  .btn{background:var(--teal);color:#fff;border:0;border-radius:8px;padding:13px 26px;font-size:16px;
+       font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--navy)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:22px}
+  /* progress */
+  .bar{height:7px;background:var(--mist);border-radius:6px;overflow:hidden;margin:0 0 6px}
+  .bar>i{display:block;height:100%;background:var(--teal);width:0;transition:width .3s}
+  .meta{display:flex;justify-content:space-between;font-size:13px;color:var(--slate);margin-bottom:18px}
+  .tag{display:inline-block;background:var(--mist);color:var(--slate);border-radius:5px;
+       padding:3px 10px;font-size:12px;font-weight:700;letter-spacing:.03em;margin-bottom:12px}
+  .stem{font-size:18px;font-weight:600;color:var(--navy);margin:0 0 18px}
+  .opt{display:block;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--line);
+       border-radius:9px;padding:13px 16px;margin-bottom:9px;cursor:pointer;font-size:15.5px;
+       font-family:inherit;color:var(--ink);transition:.12s}
+  .opt:hover:not(:disabled){border-color:var(--teal);background:#F7FCFB}
+  .opt:disabled{cursor:default}
+  .opt .k{display:inline-block;width:24px;font-weight:700;color:var(--slate)}
+  .opt.correct{border-color:var(--good);background:#EDF7F2}
+  .opt.correct .k{color:var(--good)}
+  .opt.wrong{border-color:var(--bad);background:#FBF0EF}
+  .opt.wrong .k{color:var(--bad)}
+  .fb{border-left:4px solid var(--teal);background:var(--mist);border-radius:0 8px 8px 0;
+      padding:14px 16px;margin-top:14px;font-size:15px}
+  .fb b{color:var(--navy)}
+  .fb.ok{border-left-color:var(--good)}
+  .fb.no{border-left-color:var(--bad)}
+  /* results */
+  .score{text-align:center;padding:8px 0 18px}
+  .score .big{font-size:52px;font-weight:700;color:var(--navy);font-family:Georgia,serif;line-height:1}
+  .score .sub{color:var(--slate);font-size:15px;margin-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th{text-align:left;color:var(--slate);font-size:12px;text-transform:uppercase;letter-spacing:.04em;
+     padding:8px 6px;border-bottom:1px solid var(--line)}
+  td{padding:9px 6px;border-bottom:1px solid var(--mist);vertical-align:middle}
+  .mini{height:8px;background:var(--mist);border-radius:5px;overflow:hidden;min-width:90px}
+  .mini>i{display:block;height:100%;border-radius:5px}
+  .missed{border:1px solid var(--line);border-radius:9px;padding:14px 16px;margin-bottom:10px;background:#FFFDF8}
+  .missed .q{font-weight:600;color:var(--navy);margin-bottom:7px}
+  .missed .a{font-size:14.5px;margin:3px 0}
+  .missed .a.you{color:var(--bad)}
+  .missed .a.right{color:var(--good)}
+  .missed .why{font-size:14px;color:var(--slate);margin-top:7px;font-style:italic}
+  .hide{display:none}
+  footer{text-align:center;color:var(--slate);font-size:13px;margin-top:26px}
+  kbd{background:var(--white);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+      padding:1px 6px;font-size:12px;font-family:Consolas,monospace}
+  @media(max-width:600px){.wrap{padding:14px 12px 40px}header{padding:18px}.card{padding:18px}.stem{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>INFO 6500 — Final Exam Review</h1>
+    <p>Practice across the whole course. Instant feedback, and a breakdown at the end showing what to study.</p>
+  </header>
+
+  <!-- ============ START SCREEN ============ -->
+  <section id="start" class="card">
+    <h2>Build your practice set</h2>
+    <p class="lead">These are <b>practice</b> questions — they are not the exam itself, but they cover the same
+      material and the same style of reasoning. Answer honestly and let the results tell you where to focus.</p>
+
+    <label class="fieldlabel">What do you want to review?</label>
+    <div class="chips" id="scopeChips"></div>
+
+    <label class="fieldlabel">How many questions?</label>
+    <div class="chips" id="lenChips"></div>
+
+    <div class="row">
+      <button class="btn" id="startBtn">Start practice</button>
+      <span id="poolNote" style="color:var(--slate);font-size:14px"></span>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ SCREEN ============ -->
+  <section id="quiz" class="card hide">
+    <div class="bar"><i id="progFill"></i></div>
+    <div class="meta">
+      <span id="counter">Question 1 of 20</span>
+      <span id="running">Score 0</span>
+    </div>
+    <div class="tag" id="qtag">WEEK 1 · FRAMING</div>
+    <p class="stem" id="stem"></p>
+    <div id="opts"></div>
+    <div id="fb" class="fb hide"></div>
+    <div class="row">
+      <button class="btn hide" id="nextBtn">Next question</button>
+      <button class="btn ghost" id="quitBtn">End &amp; see results</button>
+    </div>
+    <p style="color:var(--slate);font-size:13px;margin-top:14px">
+      Tip: press <kbd>1</kbd>–<kbd>4</kbd> to answer, <kbd>Enter</kbd> for the next question.</p>
+  </section>
+
+  <!-- ============ RESULTS SCREEN ============ -->
+  <section id="results" class="card hide">
+    <div class="score">
+      <div class="big" id="pct">0%</div>
+      <div class="sub" id="scoreLine">0 of 0 correct</div>
+      <p id="verdict" style="margin:14px auto 0;max-width:520px;color:var(--ink)"></p>
+    </div>
+
+    <h3>Where you stand, by topic</h3>
+    <table>
+      <thead><tr><th>Topic</th><th style="width:120px">Correct</th><th style="width:140px"></th></tr></thead>
+      <tbody id="topicRows"></tbody>
+    </table>
+
+    <div id="missedWrap">
+      <h3>Questions to revisit</h3>
+      <div id="missedList"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="againBtn">Practice again</button>
+      <button class="btn ghost" id="missedBtn">Retry only what I missed</button>
+    </div>
+  </section>
+
+  <footer>INFO 6500 — Machine Learning · Week 8 review tool. Practice only; not the graded exam.</footer>
+</div>
+
+<script>
+/* ---------- question pool (injected at build time) ---------- */
+const POOL = [{"wk":1,"topic":"Framing","q":"Which of these is a regression task?","options":["Predicting whether an email is spam or not","Predicting a customer's total spend next quarter, in dollars","Grouping customers into segments with no labels","Labeling a transaction as fraud or not"],"correct":1,"explain":"Regression predicts a continuous number (dollars). The others predict categories or find groups."},{"wk":1,"topic":"Framing","q":"A bank predicts whether a loan will default (yes/no). This is:","options":["Regression","Unsupervised learning","Supervised classification","Dimensionality reduction"],"correct":2,"explain":"A labeled yes/no outcome makes it supervised classification."},{"wk":1,"topic":"Framing","q":"Which is an UNsupervised learning problem?","options":["Predicting house prices from features","Segmenting customers into groups with no predefined labels","Classifying transactions as fraud or not","Forecasting next month's sales"],"correct":1,"explain":"Unsupervised learning finds structure with no labeled target; segmentation is the classic example."},{"wk":1,"topic":"Framing","q":"In this course, a finished analysis should end with:","options":["A trained model saved in a notebook","The highest possible accuracy","A decision or recommendation a stakeholder can act on","A confusion matrix"],"correct":2,"explain":"Business-first: the deliverable is a decision, not a model sitting in a notebook."},{"wk":1,"topic":"Framing","q":"Before building a churn model, the MOST important first question is:","options":["Which algorithm is most accurate?","What decision will the prediction support?","How many features are available?","Which programming language to use?"],"correct":1,"explain":"Framing starts from the decision the model serves; if no decision changes, you may not need the model."},{"wk":1,"topic":"Data prep & leakage","q":"Data leakage occurs when:","options":["Data is lost while loading the file","The model uses information it would not actually have at decision time","There are missing values in the dataset","The dataset is too small"],"correct":1,"explain":"Leakage = learning from info unavailable at prediction time; it inflates scores that then fail in production."},{"wk":1,"topic":"Data prep & leakage","q":"To avoid leakage, an imputer (e.g., median fill) should be fit on:","options":["The entire dataset before splitting","The training data only, then applied to test","The test data only","Each row independently"],"correct":1,"explain":"Learned transforms are fit on train only and merely applied to test."},{"wk":1,"topic":"Data prep & leakage","q":"You should split data into train/test:","options":["After scaling and imputing the full dataset","Before fitting any learned transforms","Only if the dataset is large","After tuning hyperparameters"],"correct":1,"explain":"Split first; otherwise transforms leak test information into training."},{"wk":1,"topic":"Data prep & leakage","q":"A stratified train/test split is used to:","options":["Make the split run faster","Keep the class proportions the same in train and test","Remove outliers","Standardize the features"],"correct":1,"explain":"Stratification preserves the class balance, so the test set fairly mirrors reality."},{"wk":1,"topic":"Data prep & leakage","q":"One-hot encoding is used to:","options":["Fill in missing numeric values","Convert a categorical column into numeric 0/1 columns","Scale features to comparable ranges","Reduce the number of rows"],"correct":1,"explain":"One-hot turns categories into 0/1 indicator columns a model can use."},{"wk":1,"topic":"Data prep & leakage","q":"Which step is DETERMINISTIC cleaning, safe to do before splitting?","options":["Imputing missing values with the median","Standardizing a numeric column","Fixing inconsistent text casing (e.g., 'rent' -> 'RENT')","Fitting a one-hot encoder on all data"],"correct":2,"explain":"Text casing doesn't learn from the data's distribution, so it's safe pre-split; the others learn parameters."},{"wk":2,"topic":"Regression","q":"In linear regression, a coefficient tells you:","options":["The model's overall accuracy","How much the prediction changes per one-unit increase in that feature, holding others fixed","The probability of the positive class","The correlation between two features"],"correct":1,"explain":"That 'holding others fixed' per-unit effect is the heart of coefficient interpretation."},{"wk":2,"topic":"Regression","q":"The intercept (b0) in a regression is:","options":["Always the most important driver","The predicted value when all features equal zero","The average error of the model","The slope of the steepest feature"],"correct":1,"explain":"The intercept is the baseline prediction at zero on every feature (often not meaningful by itself)."},{"wk":2,"topic":"Regression","q":"An interaction term (e.g., smoker x BMI) lets a model express:","options":["That two features are correlated","That the effect of one feature depends on another","That a feature should be removed","That the target is categorical"],"correct":1,"explain":"An interaction captures 'different slope for different groups' — BMI matters more for smokers."},{"wk":2,"topic":"Regression","q":"Compared with Ridge, Lasso regression can:","options":["Only be used for classification","Shrink some coefficients exactly to zero, selecting features","Never reduce coefficients","Increase coefficients without limit"],"correct":1,"explain":"Lasso (L1) can zero out weak coefficients; Ridge (L2) shrinks but never to exactly zero."},{"wk":2,"topic":"Regression","q":"Which metric is easiest to explain to a manager because it's in the target's units (e.g., dollars)?","options":["R-squared","ROC-AUC","MAE (mean absolute error)","Log-loss"],"correct":2,"explain":"MAE reads as 'on average we're off by about $X' — concrete and business-friendly."},{"wk":2,"topic":"Regression","q":"R-squared measures:","options":["The average dollar error","The share of variation in the target explained by the model","The number of features used","The classification accuracy"],"correct":1,"explain":"R-squared is the proportion of variance explained (0-1); good for comparing models, not in business units."},{"wk":2,"topic":"Regression","q":"Logistic regression outputs:","options":["A dollar amount","A probability between 0 and 1 for the positive class","A cluster label","The number of neighbors"],"correct":1,"explain":"Despite the name, logistic regression is a classifier that outputs a probability."},{"wk":2,"topic":"Regression","q":"Why standardize features before applying Ridge/Lasso?","options":["Only to make the model run faster","Because the penalty is scale-sensitive, so features must be comparable","To convert categories to numbers","It is never necessary"],"correct":1,"explain":"Regularization penalizes coefficient size, so unscaled features in big units would be unfairly penalized."},{"wk":2,"topic":"Regression","q":"Reporting ONLY a very high R-squared to a decision-maker is risky because:","options":["R-squared is always wrong","It isn't in business units and never decreases when you add features","It only works for classification","It measures fairness"],"correct":1,"explain":"R-squared can be inflated by adding features and isn't in dollars; pair it with test-set error/MAE."},{"wk":3,"topic":"KNN","q":"K-Nearest Neighbors classifies a new point by:","options":["Fitting a straight-line boundary","A majority vote of its k most similar training points","Building a sequence of yes/no rules","Averaging all training labels equally"],"correct":1,"explain":"KNN predicts from the labels of the k nearest (most similar) training examples."},{"wk":3,"topic":"KNN","q":"KNN requires feature scaling because:","options":["It speeds up training","It is distance-based, so large-scale features would dominate","It cannot handle categories otherwise","Scaling is required by all models"],"correct":1,"explain":"Distances are dominated by big-scale features (e.g., income) unless you standardize."},{"wk":3,"topic":"KNN","q":"Increasing k in KNN generally makes the model:","options":["More flexible and noisier","Smoother, but it can blur real boundaries","Unable to make predictions","Identical to a decision tree"],"correct":1,"explain":"Larger k averages over more neighbors: smoother decisions, but it can wash out real local structure."},{"wk":3,"topic":"Trees","q":"A key advantage of a single decision tree is that it:","options":["Always has the highest accuracy","Produces human-readable rules you can explain","Requires feature scaling","Cannot overfit"],"correct":1,"explain":"Trees yield readable if/then rules — valuable for explaining a regulated decision."},{"wk":3,"topic":"Trees","q":"A decision tree that is too deep will likely:","options":["Underfit the data","Overfit, memorizing training noise and failing on new data","Become a linear model","Ignore the most important features"],"correct":1,"explain":"Excess depth memorizes noise (overfitting); we cap depth to generalize."},{"wk":3,"topic":"Trees","q":"Unlike KNN, a decision tree does NOT need feature scaling because:","options":["It uses distance between points","It splits one feature at a time on a threshold, which scaling doesn't change","It only works with categorical data","It standardizes features internally"],"correct":1,"explain":"A threshold split's best location is unaffected by rescaling, so trees are scale-invariant."},{"wk":3,"topic":"Trees","q":"Feature importances from a tree-based model tell you:","options":["The exact dollar effect of each feature","Roughly how much each feature contributed to the model's splits","Whether a feature is causal","The correlation between two features"],"correct":1,"explain":"Importances rank contribution to splits — useful, but not a causal or dollar statement."},{"wk":3,"topic":"Evaluation","q":"On data where only 5% of cases are positive, a model that always predicts 'negative' will have:","options":["High accuracy but zero recall on the positive class","Low accuracy and high recall","Perfect precision and recall","An undefined confusion matrix"],"correct":0,"explain":"It's ~95% accurate yet catches none of the positives — the accuracy trap under imbalance."},{"wk":3,"topic":"Evaluation","q":"In a confusion matrix, a FALSE NEGATIVE is:","options":["A negative case correctly predicted negative","A positive case incorrectly predicted negative","A negative case incorrectly predicted positive","A positive case correctly predicted positive"],"correct":1,"explain":"A false negative is a true positive the model missed (predicted negative)."},{"wk":3,"topic":"Evaluation","q":"Recall is defined as:","options":["Of the cases we flagged, how many were truly positive","Of all truly positive cases, how many we caught","The overall fraction correct","The area under the ROC curve"],"correct":1,"explain":"Recall = TP / (TP + FN): coverage of the actual positives."},{"wk":3,"topic":"Evaluation","q":"Precision is defined as:","options":["Of all truly positive cases, how many we caught","Of the cases we flagged positive, how many were truly positive","The average error in dollars","The number of folds in cross-validation"],"correct":1,"explain":"Precision = TP / (TP + FP): trustworthiness of the positive flags."},{"wk":3,"topic":"Evaluation","q":"The F1 score is useful because it:","options":["Ignores the minority class","Balances precision and recall in a single number","Is always equal to accuracy","Measures regression error"],"correct":1,"explain":"F1 is the harmonic mean of precision and recall — high only when both are decent."},{"wk":3,"topic":"Evaluation","q":"An ROC-AUC of 0.5 means the model:","options":["Is perfect","Ranks positives vs. negatives no better than random guessing","Has high recall","Has zero false positives"],"correct":1,"explain":"0.5 = chance ranking; 1.0 = perfect ranking. ROC-AUC measures ranking, independent of threshold."},{"wk":3,"topic":"Evaluation","q":"Cross-validation is preferred over a single train/test split because it:","options":["Trains the model faster","Gives a more reliable estimate by averaging over multiple folds","Eliminates the need for a test set forever","Guarantees higher accuracy"],"correct":1,"explain":"Rotating the held-out fold and averaging reduces dependence on one lucky split."},{"wk":3,"topic":"Evaluation","q":"For a bank, a false negative (approving a loan that then defaults) is usually costly because:","options":["It wastes a little review time","The bank loses the loan principal","It improves recall","It has no business impact"],"correct":1,"explain":"A missed default loses principal — typically far costlier than a false positive's review time."},{"wk":5,"topic":"SVM","q":"In a support vector machine, the boundary is determined by:","options":["All training points equally","The support vectors — the points nearest the margin","The points farthest from the boundary","The average of all the features"],"correct":1,"explain":"Only the support vectors (points on the margin) define the boundary; faraway points don't."},{"wk":5,"topic":"SVM","q":"A kernel (e.g., RBF) SVM is used when:","options":["The data is already linearly separable","Classes need a curved (nonlinear) boundary","You want maximum interpretability","There are no hyperparameters to set"],"correct":1,"explain":"Kernels let an SVM draw nonlinear boundaries a straight line can't."},{"wk":5,"topic":"Ensembles","q":"Which statement about bagging (random forests) vs. boosting is correct?","options":["Bagging trains models sequentially; boosting trains them in parallel","Bagging trains many models in parallel on resamples; boosting builds models sequentially to fix prior errors","Both require no tuning at all","Boosting can only be used for regression"],"correct":1,"explain":"Bagging = parallel on resamples (cuts variance); boosting = sequential error-correction (cuts bias)."},{"wk":5,"topic":"Tuning","q":"The difference between a parameter and a hyperparameter is:","options":["There is no difference","Parameters are learned during fitting; hyperparameters are set by you before fitting","Hyperparameters are learned; parameters are chosen by you","Both are chosen automatically"],"correct":1,"explain":"The model learns parameters (e.g., coefficients); you choose hyperparameters (e.g., k, max_depth, C)."},{"wk":5,"topic":"Tuning","q":"Choosing hyperparameters by maximizing performance on the TEST set is wrong because:","options":["The test set is too small","It 'tunes to the test,' so the test score is no longer an honest estimate","Hyperparameters cannot affect the test set","It makes training slower"],"correct":1,"explain":"Selecting settings on the test set leaks it into tuning; tune on validation/CV and reveal test once."},{"wk":1,"topic":"Framing","q":"Deciding whether a customer will cancel next month (yes/no) is:","options":["A regression task","A classification task","An unsupervised task","A data-cleaning task"],"correct":1,"explain":"A yes/no labeled outcome is classification."},{"wk":1,"topic":"Framing","q":"Predicting tomorrow's high temperature in degrees is:","options":["Classification","Clustering","Regression","One-hot encoding"],"correct":2,"explain":"A continuous numeric prediction is regression."},{"wk":1,"topic":"Data prep & leakage","q":"Fitting a StandardScaler on the FULL dataset before splitting is an example of:","options":["Good practice","Data leakage","Stratification","Feature engineering"],"correct":1,"explain":"The scaler learns from test rows too, leaking information; fit on train only."},{"wk":1,"topic":"Data prep & leakage","q":"A scikit-learn Pipeline that bundles preprocessing with the model helps mainly by:","options":["Making code shorter only","Ensuring transforms are fit only on each training fold, preventing leakage","Increasing accuracy automatically","Removing the need for a test set"],"correct":1,"explain":"The pipeline applies fit-on-train discipline automatically, even inside cross-validation."},{"wk":1,"topic":"Data prep & leakage","q":"Stratified sampling matters MOST when:","options":["The dataset is perfectly balanced","The classes are imbalanced","There are no categorical features","The model is linear"],"correct":1,"explain":"Stratification preserves rare-class proportions so the split is representative."},{"wk":2,"topic":"Regression","q":"If the coefficient on 'years of experience' is +$1,200, it means:","options":["Experience explains 1,200% of pay","Each additional year adds about $1,200 to the prediction, holding others fixed","Pay is 1,200 times experience","The model's error is $1,200"],"correct":1,"explain":"A coefficient is the per-unit effect holding other features constant."},{"wk":2,"topic":"Regression","q":"Ridge regression (L2) primarily:","options":["Sets many coefficients to exactly zero","Shrinks coefficients toward zero (but not exactly zero) to reduce overfitting","Converts categories to numbers","Only works for classification"],"correct":1,"explain":"Ridge shrinks all coefficients; Lasso is the one that can zero them out."},{"wk":2,"topic":"Regression","q":"RMSE differs from MAE in that RMSE:","options":["Is always smaller","Penalizes large errors more because it squares them","Is measured in different units than the target","Cannot be computed on a test set"],"correct":1,"explain":"Squaring makes RMSE sensitive to big misses; a large RMSE-vs-MAE gap signals outlier errors."},{"wk":2,"topic":"Regression","q":"A logistic regression coefficient is most naturally interpreted in terms of:","options":["Dollars","Odds of the positive class","Cluster distance","Tree depth"],"correct":1,"explain":"Logistic coefficients act on the log-odds; we describe effects as changes in odds."},{"wk":3,"topic":"KNN","q":"Setting k = 1 in KNN tends to make the model:","options":["Very smooth and stable","Flexible and noisy (prone to overfitting)","Identical to linear regression","Unable to predict"],"correct":1,"explain":"With k=1 the prediction follows the single nearest point, so it's jumpy/overfit."},{"wk":3,"topic":"Trees","q":"Which model is generally easiest to explain to a regulator?","options":["A kernel SVM","A gradient-boosted ensemble","A single decision tree","A deep neural network"],"correct":2,"explain":"A single tree exposes readable if/then rules."},{"wk":3,"topic":"Trees","q":"Capping max_depth on a decision tree mainly helps to:","options":["Speed up data loading","Prevent overfitting and keep rules readable","Scale the features","Balance the classes"],"correct":1,"explain":"Limiting depth stops the tree from memorizing noise."},{"wk":3,"topic":"Evaluation","q":"For a spam filter where sending a real, important email to junk is very costly, you should optimize:","options":["Recall","Precision","Accuracy only","R-squared"],"correct":1,"explain":"A false positive (real email -> junk) is the painful error, so prioritize precision."},{"wk":3,"topic":"Evaluation","q":"Plain accuracy is most misleading when:","options":["The dataset is large","The classes are roughly balanced","One class is rare (imbalanced)","All features are numeric"],"correct":2,"explain":"Under imbalance, predicting the majority scores high accuracy while missing the minority."},{"wk":3,"topic":"Evaluation","q":"A true positive is:","options":["A negative case predicted positive","A positive case predicted negative","A positive case correctly predicted positive","A negative case correctly predicted negative"],"correct":2,"explain":"True positive = actual positive that the model also predicted positive."},{"wk":3,"topic":"Evaluation","q":"In 5-fold cross-validation, each fold is:","options":["Used only for training","Held out for testing exactly once while the rest train","Discarded after one use","Used to scale the features"],"correct":1,"explain":"Each of the 5 parts is the validation fold once; scores are averaged."},{"wk":5,"topic":"SVM","q":"The 'margin' in a support vector machine is:","options":["The model's accuracy","The gap between the boundary and the nearest points of each class","The number of support vectors","The learning rate"],"correct":1,"explain":"SVMs maximize this margin (the width of the 'street') for better generalization."},{"wk":5,"topic":"Ensembles","q":"A random forest reduces overfitting mainly by:","options":["Using a single very deep tree","Averaging many varied trees so their errors cancel (lower variance)","Removing all but the best feature","Training sequentially on errors"],"correct":1,"explain":"Averaging decorrelated trees cuts variance — the strength of bagging."},{"wk":5,"topic":"Ensembles","q":"Gradient boosting builds its models:","options":["All at once in parallel","Sequentially, each new model correcting the previous ones' errors","By averaging random resamples","Without any trees"],"correct":1,"explain":"Boosting is sequential error-correction; powerful but needs careful tuning."},{"wk":5,"topic":"Tuning","q":"Grid search with cross-validation is used to:","options":["Clean missing data","Find good hyperparameters using only the training data","Replace the test set","Guarantee zero error"],"correct":1,"explain":"It scores hyperparameter combinations via CV on the training data, keeping the test set untouched."},{"wk":5,"topic":"SVM","q":"A 'hard margin' SVM (allowing zero violations) is impractical on most real data because:","options":["It can only handle two features at a time","Real data is rarely perfectly separable, so a single noisy point can wreck the boundary","It requires the target to be continuous","It cannot use any kernel"],"correct":1,"explain":"Insisting on zero training errors makes the model hostage to outliers. The soft margin (controlled by C) tolerates some violations."},{"wk":5,"topic":"Ensembles","q":"In bagging, each individual tree is trained on:","options":["The complete original training set","A bootstrap resample — a random sample of the rows drawn with replacement","Only the rows the previous tree got wrong","A random subset of the test data"],"correct":1,"explain":"Bootstrap resampling gives each tree a slightly different view of the data, which is what makes the ensemble diverse."},{"wk":5,"topic":"Ensembles","q":"A random forest adds diversity BEYOND ordinary bagging by:","options":["Considering only a random subset of features at each split","Training the trees one after another to fix errors","Removing outliers before each tree","Standardizing the features inside every tree"],"correct":0,"explain":"Random feature selection at each split stops every tree from keying on the same dominant predictor, decorrelating the trees."},{"wk":5,"topic":"Ensembles","q":"The n_estimators setting in a random forest controls:","options":["The maximum depth of each tree","The number of trees in the forest","The fraction of data held out for testing","The learning rate"],"correct":1,"explain":"More trees generally help (with diminishing returns) and, unlike boosting rounds, rarely cause overfitting on their own."},{"wk":5,"topic":"Tuning","q":"A tuned model shows a best cross-validated F1 of 0.40 and a test F1 of 0.38. This most likely means:","options":["The tuning badly overfit the folds and results cannot be trusted","The tuned settings generalized reasonably — the small gap is expected","The test set was leaked into training","The model must be retuned on the test set"],"correct":1,"explain":"A small drop from CV to test is normal. A large drop would signal that tuning overfit the validation folds."},{"wk":5,"topic":"Ensembles","q":"Compared with bagging, boosting is MORE prone to:","options":["Underfitting no matter how it is configured","Overfitting if run for too many rounds or with too high a learning rate","Ignoring the minority class entirely","Requiring feature standardization"],"correct":1,"explain":"Boosting keeps fitting the remaining errors, so unchecked it eventually models noise. Hence early stopping and small learning rates."},{"wk":5,"topic":"SVM","q":"Features should be standardized before fitting an RBF-kernel SVM because:","options":["The kernel is based on distances, so an unscaled large-range feature would dominate","SVMs cannot accept negative values","Standardizing removes the need to choose C","It converts categorical features to numeric"],"correct":0,"explain":"Like KNN and K-Means, kernel SVMs are distance-based, so scale differences distort which points count as 'close'."},{"wk":6,"topic":"Interpretability","q":"For a single prediction, the SHAP values for all features sum to:","options":["Exactly 1.0","The difference between that prediction and the model's base (expected) value","The model's accuracy","The number of features used"],"correct":1,"explain":"That additive property is the point of SHAP: the contributions account exactly for why this prediction differs from average."},{"wk":6,"topic":"Interpretability","q":"A SHAP beeswarm plot summarizing many predictions is primarily a:","options":["Local explanation of one decision","Global explanation of the model's overall behavior","Fairness metric","Hyperparameter search result"],"correct":1,"explain":"Beeswarm shows feature effects across many rows (global). A waterfall for one row is the local view."},{"wk":6,"topic":"Interpretability","q":"Which model is typically the EASIEST to explain to a non-technical stakeholder?","options":["A gradient boosting ensemble of 500 trees","A logistic regression or a shallow decision tree","An RBF-kernel SVM","A random forest with unlimited depth"],"correct":1,"explain":"Simple linear models and shallow trees are directly readable — the core of the interpretability/accuracy trade-off."},{"wk":6,"topic":"Responsible AI","q":"The fairness notion of 'equal opportunity' focuses on equalizing:","options":["The overall accuracy for each group","The true positive rate (recall) across groups","The number of people in each group","The number of features used per group"],"correct":1,"explain":"Equal opportunity asks whether people who genuinely qualify are caught at the same rate regardless of group."},{"wk":6,"topic":"Responsible AI","q":"A proxy variable is one that:","options":["Has missing values in most rows","Correlates with a protected attribute and can reintroduce bias indirectly","Is always dropped automatically by scikit-learn","Measures the model's error"],"correct":1,"explain":"ZIP code standing in for race is the classic case — which is why deleting the protected column alone does not make a model fair."},{"wk":6,"topic":"Responsible AI","q":"The 'four-fifths' (80%) rule is a threshold used to flag:","options":["Models with accuracy below 80%","A group whose selection rate is under 80% of the highest group's rate","Datasets missing more than 20% of values","Training runs that use over 80% of the data"],"correct":1,"explain":"It is a rule of thumb for disparate impact — a signal to investigate, not proof of discrimination on its own."},{"wk":6,"topic":"Responsible AI","q":"An audit shows your model performs much worse for one group. The best FIRST response is to:","options":["Investigate the cause — data representation, features, and threshold choice","Stop measuring that metric","Deploy anyway and monitor complaints","Delete the group's rows from the dataset"],"correct":0,"explain":"Diagnose before you act: the fix differs depending on whether it stems from sample size, proxies, labels, or the threshold."},{"wk":6,"topic":"Responsible AI","q":"Documentation such as a 'model card' is valuable primarily because it records:","options":["The exact source code of the algorithm","Intended use, known limitations, and performance across groups","The salaries of the project team","The cloud provider's pricing"],"correct":1,"explain":"It creates accountability — future users can see where the model is appropriate and where it should not be trusted."},{"wk":6,"topic":"Responsible AI","q":"A harmful feedback loop occurs when:","options":["The model's own decisions shape the future data it learns from","Users submit feedback forms about the product","The training script is run twice","Cross-validation is repeated too often"],"correct":0,"explain":"If you only ever contact customers the model flagged, you only observe outcomes for them — and the bias entrenches itself."},{"wk":6,"topic":"Responsible AI","q":"'Automation bias' describes the human tendency to:","options":["Refuse to use any automated system","Over-trust a system's output even when it is wrong","Automate tasks that should stay manual","Prefer older software to newer software"],"correct":1,"explain":"It is why a human in the loop only helps if that person is genuinely empowered and equipped to disagree with the model."},{"wk":6,"topic":"Responsible AI","q":"Choosing the classification threshold is an ethical decision, not just a technical one, because it:","options":["Changes the model's training data","Determines who bears the false positives and who bears the false negatives","Sets the number of features","Decides which algorithm is used"],"correct":1,"explain":"Moving the threshold shifts harm between two groups of people — that allocation deserves explicit, documented judgment."},{"wk":6,"topic":"Interpretability","q":"A partial dependence plot can be MISLEADING when:","options":["The model is a decision tree","Features are strongly correlated, so it averages over unrealistic combinations","The dataset has more than 1,000 rows","The target variable is binary"],"correct":1,"explain":"Sweeping one feature while holding others fixed can create combinations that never occur in reality (e.g., tiny house, huge lot)."},{"wk":7,"topic":"Clustering","q":"Setting n_init=10 in K-Means helps because it:","options":["Runs the algorithm from 10 different random starts and keeps the best result","Creates exactly 10 clusters","Uses 10% of the data for validation","Repeats the standardization 10 times"],"correct":0,"explain":"K-Means can settle into a poor local solution depending on where centroids start; multiple restarts guard against that."},{"wk":7,"topic":"Clustering","q":"As k increases, within-cluster inertia (sum of squared distances) always:","options":["Increases","Decreases","Stays constant","Oscillates unpredictably"],"correct":1,"explain":"More clusters means every point sits closer to some centroid — which is exactly why you cannot pick k by minimizing inertia alone."},{"wk":7,"topic":"Clustering","q":"Setting k equal to the number of rows in the dataset would produce:","options":["The single best clustering possible","Inertia of zero and completely meaningless segments","An error message from scikit-learn","Perfectly balanced cluster sizes"],"correct":1,"explain":"Every point becomes its own cluster: mathematically 'optimal' by inertia, useless to the business. The elbow exists for this reason."},{"wk":7,"topic":"PCA","q":"Principal components are constructed so that they are:","options":["Identical to the original features, just reordered","Orthogonal (uncorrelated) with one another","Always exactly two in number","Guaranteed to be interpretable"],"correct":1,"explain":"Each successive component captures the most remaining variance in a direction uncorrelated with the earlier ones."},{"wk":7,"topic":"PCA","q":"PCA loadings tell you:","options":["How many clusters exist in the data","How much each original feature contributes to a given component","The accuracy of the model","Which rows are outliers"],"correct":1,"explain":"Reading the loadings is how you give a component a human name, e.g., 'this component is mostly engagement.'"},{"wk":7,"topic":"PCA","q":"A common reason to run PCA BEFORE clustering is to:","options":["Guarantee the clusters will be correct","Reduce dimensions and noise so distances become more meaningful","Convert categorical features into numbers","Eliminate the need to standardize"],"correct":1,"explain":"In many dimensions distances get diluted; compressing to the informative directions often yields cleaner, more visualizable clusters."},{"wk":7,"topic":"PCA","q":"A drawback of using principal components as model inputs is that:","options":["They cannot be used by any algorithm","They are combinations of original features and so are harder to interpret","They always reduce accuracy","They require the target variable"],"correct":1,"explain":"You trade interpretability for compression — 'PC1' has no natural business meaning until you read its loadings."},{"wk":7,"topic":"PCA","q":"If the first two principal components explain 85% of the variance, plotting them gives you:","options":["A reasonable two-dimensional picture of the data's main structure","A guarantee that exactly two clusters exist","The model's prediction accuracy","A confusion matrix"],"correct":0,"explain":"Capturing most of the variance in 2-D is what makes PCA such a useful visualization tool for high-dimensional data."},{"wk":7,"topic":"Clustering","q":"Because clustering has no ground-truth answer key, results should be validated by:","options":["Checking accuracy against the true labels","Checking stability and whether the segments make business sense","Maximizing the number of clusters","Comparing to a random forest's accuracy"],"correct":1,"explain":"There are no true labels to score against. Silhouette, stability across samples, and business plausibility are your evidence."},{"wk":7,"topic":"Clustering","q":"In a dendrogram, the height at which two clusters join represents:","options":["How many points each cluster contains","How dissimilar (far apart) the two clusters are","The silhouette score","The number of features used"],"correct":1,"explain":"Taller merges join more dissimilar groups, so cutting the tree at a chosen height selects how coarse the segmentation should be."},{"wk":7,"topic":"PCA","q":"Standardizing features before PCA matters because:","options":["PCA cannot handle decimal values","PCA maximizes variance, so a large-scale feature would dominate the components","It guarantees exactly three components","It makes the loadings sum to one"],"correct":1,"explain":"Income measured in dollars would swamp satisfaction measured 1-5 purely because of units, not importance."}];
+
+/* ---------- scope + length options ---------- */
+const SCOPES = [
+  {id:"all",   label:"Everything (Weeks 1–7)", test:q=>true},
+  {id:"early", label:"Foundations (Weeks 1–3)", test:q=>q.wk<=3},
+  {id:"late",  label:"Since the midterm (Weeks 5–7)", test:q=>q.wk>=5},
+  {id:"w5",    label:"Week 5 · SVM, ensembles, tuning", test:q=>q.wk===5},
+  {id:"w6",    label:"Week 6 · Interpretability & responsible AI", test:q=>q.wk===6},
+  {id:"w7",    label:"Week 7 · Clustering & PCA", test:q=>q.wk===7}
+];
+const LENGTHS = [10, 20, 30, "All"];
+
+let scopeId = "all", wantLen = 20;
+let deck = [], idx = 0, answered = false, results = [];
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const shuffle = a => { a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a; };
+const LET = ["A","B","C","D","E","F"];
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function poolFor(id){ const s = SCOPES.find(x => x.id === id); return POOL.filter(s.test); }
+
+/* ---------- start screen ---------- */
+function renderChips(){
+  $("scopeChips").innerHTML = SCOPES.map(s =>
+    '<button class="chip' + (s.id===scopeId?' on':'') + '" data-scope="' + s.id + '">' +
+    esc(s.label) + ' <span style="opacity:.7">(' + poolFor(s.id).length + ')</span></button>').join("");
+  $("lenChips").innerHTML = LENGTHS.map(n =>
+    '<button class="chip' + (n===wantLen?' on':'') + '" data-len="' + n + '">' + n + '</button>').join("");
+  const avail = poolFor(scopeId).length;
+  const n = wantLen === "All" ? avail : Math.min(wantLen, avail);
+  $("poolNote").textContent = n + " question" + (n===1?"":"s") + " from a pool of " + avail + ".";
+}
+$("scopeChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-scope]"); if(!b) return;
+  scopeId = b.dataset.scope; renderChips();
+});
+$("lenChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-len]"); if(!b) return;
+  const v = b.dataset.len; wantLen = (v === "All") ? "All" : parseInt(v,10); renderChips();
+});
+
+/* ---------- quiz flow ---------- */
+function begin(list){
+  deck = list; idx = 0; results = [];
+  $("start").classList.add("hide"); $("results").classList.add("hide"); $("quiz").classList.remove("hide");
+  showQuestion();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$("startBtn").onclick = () => {
+  const avail = shuffle(poolFor(scopeId));
+  const n = wantLen === "All" ? avail.length : Math.min(wantLen, avail.length);
+  // shuffle each question's options so positions aren't memorized
+  begin(avail.slice(0, n).map(q => {
+    const order = shuffle(q.options.map((_, i) => i));
+    return { ...q, options: order.map(i => q.options[i]), correct: order.indexOf(q.correct) };
+  }));
+};
+
+function showQuestion(){
+  answered = false;
+  const q = deck[idx];
+  $("progFill").style.width = (idx / deck.length * 100) + "%";
+  $("counter").textContent = "Question " + (idx + 1) + " of " + deck.length;
+  const got = results.filter(r => r.ok).length;
+  $("running").textContent = "Score " + got + (results.length ? " / " + results.length : "");
+  $("qtag").textContent = "WEEK " + q.wk + " · " + q.topic.toUpperCase();
+  $("stem").textContent = q.q;
+  $("opts").innerHTML = q.options.map((o, i) =>
+    '<button class="opt" data-i="' + i + '"><span class="k">' + LET[i] + '</span>' + esc(o) + '</button>').join("");
+  $("fb").className = "fb hide"; $("fb").innerHTML = "";
+  $("nextBtn").classList.add("hide");
+  $("nextBtn").textContent = (idx === deck.length - 1) ? "See results" : "Next question";
+}
+
+$("opts").addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b || answered) return;
+  choose(parseInt(b.dataset.i, 10));
+});
+
+function choose(pick){
+  if (answered) return; answered = true;
+  const q = deck[idx], ok = pick === q.correct;
+  results.push({ q, pick, ok });
+  [...$("opts").children].forEach((el, i) => {
+    el.disabled = true;
+    if (i === q.correct) el.classList.add("correct");
+    else if (i === pick) el.classList.add("wrong");
+  });
+  const fb = $("fb");
+  fb.className = "fb " + (ok ? "ok" : "no");
+  fb.innerHTML = "<b>" + (ok ? "Correct." : "Not quite — the answer is " + LET[q.correct] + ".") +
+                 "</b> " + esc(q.explain);
+  $("nextBtn").classList.remove("hide");
+  const got = results.filter(r => r.ok).length;
+  $("running").textContent = "Score " + got + " / " + results.length;
+  $("progFill").style.width = ((idx + 1) / deck.length * 100) + "%";
+}
+
+$("nextBtn").onclick = () => {
+  if (idx === deck.length - 1) finish();
+  else { idx++; showQuestion(); }
+};
+$("quitBtn").onclick = () => { if (results.length) finish(); else { $("quiz").classList.add("hide"); $("start").classList.remove("hide"); } };
+
+document.addEventListener("keydown", e => {
+  if ($("quiz").classList.contains("hide")) return;
+  if (e.key >= "1" && e.key <= "4" && !answered) {
+    const el = $("opts").children[parseInt(e.key,10) - 1]; if (el) choose(parseInt(el.dataset.i,10));
+  } else if (e.key === "Enter" && answered) { $("nextBtn").click(); }
+});
+
+/* ---------- results ---------- */
+function finish(){
+  $("quiz").classList.add("hide"); $("results").classList.remove("hide");
+  const total = results.length, got = results.filter(r => r.ok).length;
+  const pct = total ? Math.round(got / total * 100) : 0;
+  $("pct").textContent = pct + "%";
+  $("scoreLine").textContent = got + " of " + total + " correct";
+  $("verdict").textContent =
+    pct >= 90 ? "Strong command of the material. Skim your weakest topic below and you are in good shape." :
+    pct >= 75 ? "Solid. Focus your remaining study on the topics scoring lowest below." :
+    pct >= 60 ? "A reasonable base, with real gaps. Work through the topics below that fall under 60%, then run this again." :
+                "Worth a focused review pass. Start with the lowest topic below, revisit that week's materials, then practice again.";
+
+  // per-topic breakdown, weakest first
+  const by = {};
+  results.forEach(r => {
+    const k = "Wk" + r.q.wk + " · " + r.q.topic;
+    (by[k] = by[k] || { n:0, ok:0 }); by[k].n++; if (r.ok) by[k].ok++;
+  });
+  $("topicRows").innerHTML = Object.entries(by)
+    .map(([k, v]) => ({ k, v, p: v.ok / v.n }))
+    .sort((a, b) => a.p - b.p)
+    .map(({ k, v, p }) => {
+      const col = p >= .8 ? "var(--good)" : p >= .6 ? "var(--amber)" : "var(--bad)";
+      return '<tr><td>' + esc(k) + '</td><td>' + v.ok + ' / ' + v.n + '</td>' +
+             '<td><div class="mini"><i style="width:' + Math.round(p*100) + '%;background:' + col + '"></i></div></td></tr>';
+    }).join("");
+
+  // missed questions
+  const missed = results.filter(r => !r.ok);
+  if (!missed.length) {
+    $("missedWrap").innerHTML = '<h3>Questions to revisit</h3><p style="color:var(--slate)">Nothing missed — clean sweep.</p>';
+    $("missedBtn").disabled = true;
+  } else {
+    $("missedBtn").disabled = false;
+    $("missedWrap").innerHTML = '<h3>Questions to revisit (' + missed.length + ')</h3><div id="missedList"></div>';
+    $("missedList").innerHTML = missed.map(r =>
+      '<div class="missed"><div class="q">' + esc(r.q.q) + '</div>' +
+      '<div class="a you">Your answer: ' + esc(r.q.options[r.pick]) + '</div>' +
+      '<div class="a right">Correct: ' + esc(r.q.options[r.q.correct]) + '</div>' +
+      '<div class="why">' + esc(r.q.explain) + '</div></div>').join("");
+  }
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+$("againBtn").onclick = () => { $("results").classList.add("hide"); $("start").classList.remove("hide"); renderChips(); window.scrollTo({top:0,behavior:"smooth"}); };
+$("missedBtn").onclick = () => {
+  const missed = results.filter(r => !r.ok).map(r => r.q);
+  if (missed.length) begin(shuffle(missed));
+};
+
+renderChips();
+</script>
+</body>
+</html>
