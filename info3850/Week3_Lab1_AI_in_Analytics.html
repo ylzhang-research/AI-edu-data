@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INFO 3850 · Week 3 Lab · AI in Analytics</title>
+<meta name="description" content="Interactive lab: how AI powers descriptive, predictive, and prescriptive analytics in business. Three cases and a graded knowledge check.">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f4f5f7; --surface:#ffffff; --surface-2:#f8f9fb; --border:#dfe3e8;
+    --ink:#14181f; --ink-2:#4d5560; --ink-3:#7a828d;
+    --brand:#12345a; --brand-2:#1f4f85; --brand-soft:#e7eef7;
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+    --good:#0f7a3a; --good-bg:#e6f4ec; --bad:#b42323; --bad-bg:#fbe9e9; --warn:#8a5a00; --warn-bg:#fff4dc;
+    --radius:12px; --shadow:0 1px 2px rgba(20,24,31,.06),0 4px 14px rgba(20,24,31,.06);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--brand-2)}
+  h1,h2,h3,h4{line-height:1.25;margin:0 0 .5em}
+  h1{font-size:1.75rem} h2{font-size:1.4rem} h3{font-size:1.1rem} h4{font-size:1rem}
+  p{margin:.4em 0 .9em}
+  code{font-family:var(--mono);font-size:.92em;background:var(--surface-2);padding:.1em .35em;border-radius:4px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  /* Header */
+  header.top{background:var(--brand);color:#fff;padding:18px 20px 0}
+  .top-inner{max-width:1040px;margin:0 auto}
+  .course{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+  header h1{color:#fff;margin:.15em 0 .2em}
+  .sub{opacity:.9;margin:0 0 14px;font-size:.95rem}
+  nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
+  nav.tabs button{appearance:none;border:0;background:rgba(255,255,255,.08);color:#fff;padding:10px 16px;border-radius:10px 10px 0 0;font:inherit;font-size:.92rem;cursor:pointer;display:flex;align-items:center;gap:8px}
+  nav.tabs button:hover{background:rgba(255,255,255,.16)}
+  nav.tabs button[aria-selected="true"]{background:var(--bg);color:var(--brand);font-weight:600}
+  nav.tabs .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35);display:inline-block}
+  nav.tabs button[aria-selected="true"] .dot{background:#c9d3df}
+  nav.tabs .dot.done{background:var(--s3)}
+  nav.tabs button[aria-selected="true"] .dot.done{background:var(--good)}
+  .progress{height:5px;background:#e3e7ec}
+  .progress>div{height:100%;background:var(--s3);width:0;transition:width .4s}
+
+  main{max-width:1040px;margin:0 auto;padding:22px 20px 60px}
+  section.panel{display:none}
+  section.panel.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin:0 0 18px;box-shadow:var(--shadow)}
+  .card.tight{padding:14px 16px}
+  .grid{display:grid;gap:18px}
+  .grid.two{grid-template-columns:1fr 1fr}
+  .grid.three{grid-template-columns:repeat(3,1fr)}
+  @media (max-width:760px){.grid.two,.grid.three{grid-template-columns:1fr}}
+
+  .eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:4px}
+  .ladder{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+  .ladder span{font-size:.8rem;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--ink-2)}
+  .ladder span.on{background:var(--brand-soft);border-color:#b9cbe3;color:var(--brand);font-weight:600}
+  .pill{display:inline-block;font-size:.75rem;padding:2px 9px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-weight:600;letter-spacing:.02em}
+  .pill.good{background:var(--good-bg);color:var(--good)}
+  .pill.bad{background:var(--bad-bg);color:var(--bad)}
+  .pill.warn{background:var(--warn-bg);color:var(--warn)}
+
+  .callout{border-left:4px solid var(--s1);background:var(--brand-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:12px 0}
+  .callout.note{border-color:var(--s2);background:#fdf1ec}
+  .callout.think{border-color:var(--s3);background:#e9f7f1}
+  .callout p:last-child{margin-bottom:0}
+
+  table.data{width:100%;border-collapse:collapse;font-size:.9rem}
+  table.data th,table.data td{padding:7px 9px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+  table.data th{font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  table.data td.num,table.data th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tablewrap{overflow-x:auto}
+  tr.flag td{background:#fff7f5}
+
+  /* stat tiles */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}
+  .tile{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .tile .k{font-size:.75rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+  .tile .v{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .tile .v small{font-size:.8rem;font-weight:500;color:var(--ink-2)}
+  .tile.hi{border-color:#b9cbe3;background:var(--brand-soft)}
+
+  /* controls */
+  label.ctl{display:block;font-weight:600;font-size:.92rem;margin:8px 0 4px}
+  input[type=range]{width:100%;accent-color:var(--s1)}
+  input[type=text],input[type=number],select{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;width:100%}
+  input:focus,select:focus,button:focus-visible{outline:3px solid #9cc0ee;outline-offset:1px}
+  .btn{appearance:none;font:inherit;font-weight:600;padding:9px 16px;border-radius:9px;border:1px solid var(--brand-2);background:var(--brand-2);color:#fff;cursor:pointer}
+  .btn:hover{background:var(--brand)}
+  .btn.ghost{background:#fff;color:var(--brand-2)}
+  .btn.ghost:hover{background:var(--brand-soft)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.sm{padding:6px 12px;font-size:.85rem}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+  .seg button{appearance:none;border:0;background:#fff;padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer;color:var(--ink-2)}
+  .seg button[aria-pressed="true"]{background:var(--brand-2);color:#fff;font-weight:600}
+
+  /* chart */
+  .chart{width:100%;height:auto;display:block;font-family:inherit}
+  .chart text{fill:var(--ink-2);font-size:11px}
+  .chart .grid line{stroke:var(--border);stroke-width:1}
+  .chart .axis{stroke:#c7ccd3}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;color:var(--ink-2);margin:6px 0 0}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .legend i.line{height:3px;border-radius:2px;vertical-align:3px}
+  .tip{position:fixed;pointer-events:none;background:#14181f;color:#fff;font-size:.8rem;padding:6px 9px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:9;white-space:nowrap}
+
+  /* mini check */
+  .check{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:10px 0;background:var(--surface-2)}
+  .check .q{font-weight:600;margin-bottom:8px}
+  .opts{display:grid;gap:6px}
+  .opts label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-weight:400}
+  .opts label:hover{border-color:#b9cbe3}
+  .opts input{margin-top:4px}
+  .opts label.correct{border-color:var(--good);background:var(--good-bg)}
+  .opts label.wrong{border-color:var(--bad);background:var(--bad-bg)}
+  .fb{margin-top:8px;font-size:.9rem;display:none}
+  .fb.show{display:block}
+  .fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+
+  /* customers */
+  .cust{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:6px 14px;align-items:center;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:6px;font-size:.9rem}
+  .cust.sel{border-color:var(--s1);background:#eef4fc}
+  .cust .nm{font-weight:600}
+  .cust .drv{font-size:.78rem;color:var(--ink-3);grid-column:2/6}
+  .bar{height:8px;background:#e6e9ee;border-radius:4px;overflow:hidden;width:90px}
+  .bar>i{display:block;height:100%;background:var(--s2)}
+  @media (max-width:640px){.cust{grid-template-columns:auto 1fr auto;} .cust .hide-sm{display:none}}
+
+  .msg{border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff;margin-bottom:8px}
+  .msg .t{font-style:italic;color:var(--ink-2)}
+  .msg .tag{margin-top:6px;display:none}
+  .msg.open .tag{display:block}
+
+  /* quiz */
+  .qitem{border-bottom:1px solid var(--border);padding:16px 0}
+  .qitem:last-child{border-bottom:0}
+  .qitem .qn{font-size:.78rem;color:var(--ink-3);font-weight:600;letter-spacing:.05em}
+  .qitem .q{font-weight:600;margin:2px 0 8px}
+  .locked{opacity:.55;pointer-events:none;filter:grayscale(.3)}
+  .scorecard{border:2px solid var(--brand);border-radius:14px;padding:22px 24px;background:#fff;position:relative;overflow:hidden}
+  .scorecard::before{content:"";position:absolute;inset:0 0 auto 0;height:8px;background:linear-gradient(90deg,var(--s1),var(--s3))}
+  .score-big{font-size:3rem;font-weight:800;color:var(--brand);line-height:1;font-variant-numeric:tabular-nums}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.95rem;margin:12px 0}
+  .kv div:nth-child(odd){color:var(--ink-3);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;padding-top:3px}
+  .vcode{font-family:var(--mono);font-size:1.2rem;font-weight:700;letter-spacing:.08em;background:var(--surface-2);border:1px dashed #b9cbe3;padding:4px 10px;border-radius:6px;display:inline-block}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0}
+  .steps li{counter-increment:s;padding:6px 0 6px 34px;position:relative}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .checklist{list-style:none;padding:0;margin:8px 0}
+  .checklist li{padding:4px 0 4px 28px;position:relative}
+  .checklist li::before{content:"○";position:absolute;left:4px;color:var(--ink-3)}
+  .checklist li.done::before{content:"✓";color:var(--good);font-weight:700}
+
+  footer{max-width:1040px;margin:0 auto;padding:0 20px 40px;font-size:.82rem;color:var(--ink-3)}
+  footer a{color:var(--ink-3)}
+  #instr{display:none}
+  #instr.show{display:block}
+  .navbtns{display:flex;justify-content:space-between;gap:10px;margin-top:8px}
+  @media print{header.top,nav.tabs,.navbtns,footer,.progress{display:none} section.panel{display:block!important} .card{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="course">INFO 3850 · Machine Learning and AI · Fall 2026 · Week 3</div>
+    <h1>Lab 1 — AI in Analytics: From Data to Decisions</h1>
+    <p class="sub">Three business cases, one graded knowledge check. Estimated time: 45–60 minutes. Your deliverable is a screenshot of your score card.</p>
+    <nav class="tabs" role="tablist" aria-label="Lab sections">
+      <button role="tab" data-tab="start" aria-selected="true"><span class="dot" id="dot-start"></span>Start</button>
+      <button role="tab" data-tab="c1" aria-selected="false"><span class="dot" id="dot-c1"></span>Case 1 · Fraud</button>
+      <button role="tab" data-tab="c2" aria-selected="false"><span class="dot" id="dot-c2"></span>Case 2 · Demand</button>
+      <button role="tab" data-tab="c3" aria-selected="false"><span class="dot" id="dot-c3"></span>Case 3 · Churn</button>
+      <button role="tab" data-tab="quiz" aria-selected="false"><span class="dot" id="dot-quiz"></span>Knowledge Check</button>
+    </nav>
+  </div>
+</header>
+<div class="progress" aria-hidden="true"><div id="progressbar"></div></div>
+<div class="tip" id="tip"></div>
+
+<main>
+
+<!-- ============================ START ============================ -->
+<section class="panel active" id="tab-start" role="tabpanel">
+  <div class="card">
+    <div class="eyebrow">Welcome</div>
+    <h2>Why this lab?</h2>
+    <p>In Monday's lecture we defined AI and its components (machine learning, NLP, computer vision, robotics, expert systems), placed AI inside the analytics continuum — <strong>descriptive → predictive → prescriptive</strong> — and looked at how businesses actually use analytics: fraud detection, forecasting and operations, customer analytics, and personalization.</p>
+    <p>This lab puts you in the analyst's seat. In each case you will read the data (descriptive), see what an AI model predicts (predictive), and then make a business decision with the model's help (prescriptive). Along the way you will meet the challenges from the lecture: false alarms, uncertainty, ROI, and privacy.</p>
+    <div class="grid three">
+      <div class="callout"><strong>Case 1 · Riverbend Bank</strong><br>Card-fraud detection. You set the alert threshold and manage the trade-off between missed fraud and annoyed customers.</div>
+      <div class="callout"><strong>Case 2 · Magnolia Market</strong><br>Demand forecasting for a retailer. You compare forecasting methods and choose an order quantity under uncertainty.</div>
+      <div class="callout"><strong>Case 3 · StreamLine</strong><br>Customer churn and personalization. You spend a retention budget where the AI says it will do the most good.</div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <div class="eyebrow">Learning objectives</div>
+      <h3>By the end of this lab you can…</h3>
+      <ul>
+        <li>Identify which AI component (ML, NLP, etc.) is doing the work in a business analytics application.</li>
+        <li>Classify an analytics task as descriptive, predictive, or prescriptive by the question it answers.</li>
+        <li>Explain why a prediction is not a decision — and what a business must add (costs, constraints, judgment) to act on one.</li>
+        <li>Recognize the practical challenges of AI-driven analytics: false positives, forecast uncertainty, ROI justification, privacy, and cultural resistance.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="eyebrow">How it works</div>
+      <ol class="steps">
+        <li>Enter your name and student ID below (they appear on your score card).</li>
+        <li>Work through Cases 1–3 in order. Each has interactive controls and two ungraded practice questions with instant feedback.</li>
+        <li>The Knowledge Check (10 questions) unlocks after all three cases are complete. <strong>You get one attempt</strong>, so review first.</li>
+        <li>Take a screenshot of your score card, including the verification code, and upload it to Canvas by <strong>Sunday, 11:59 PM</strong>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Step 1</div>
+    <h3>Identify yourself</h3>
+    <div class="grid two">
+      <div><label class="ctl" for="stuName">Full name</label><input type="text" id="stuName" autocomplete="name" placeholder="e.g., Jordan Lee"></div>
+      <div><label class="ctl" for="stuId">Student ID</label><input type="text" id="stuId" placeholder="e.g., 123456789"></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--ink-3);margin-top:8px">Saved in this browser only. Use the same device and browser for the whole lab — your progress and your one quiz attempt are stored locally.</p>
+    <div class="callout note"><strong>Academic integrity.</strong> Do the lab yourself. The practice questions are open; the Knowledge Check is your own work. Your score card carries a verification code tied to your name, ID, score, and time.</div>
+    <div class="navbtns"><span></span><button class="btn" data-go="c1">Begin Case 1 →</button></div>
+  </div>
+</section>
+
+<!-- ============================ CASE 1 ============================ -->
+<section class="panel" id="tab-c1" role="tabpanel">
+  <div class="card">
+    <div class="eyebrow">Case 1 · Customer & fraud analytics</div>
+    <h2>Riverbend Bank: catching card fraud without annoying customers</h2>
+    <div class="ladder"><span class="on">Descriptive</span><span class="on">Predictive</span><span class="on">Prescriptive</span><span>AI component: Machine Learning (classification)</span></div>
+    <p>Riverbend Bank processes about 2 million card transactions a day. Roughly <strong>1 in 500</strong> is fraudulent. A fraud analyst cannot read 2 million records, so the bank trained a machine-learning model on three years of historical transactions that were later confirmed as legitimate or fraudulent. The model learned patterns — unusual amounts, merchant categories, distance from home, time of day — and now assigns every new transaction a <strong>fraud score from 0 to 100</strong>.</p>
+    <p>Your job: decide the <em>threshold</em>. Any transaction scoring above it is declined and the customer gets a text message. Too low and honest customers are blocked at the checkout; too high and fraud slips through.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Descriptive · What happened?</div>
+    <h3>A sample of this morning's transactions (scored by the model)</h3>
+    <p>Look at the features the model uses. Which patterns seem to separate fraud from legitimate purchases?</p>
+    <div class="tablewrap"><table class="data" id="txTable">
+      <thead><tr><th>#</th><th class="num">Amount</th><th>Merchant</th><th class="num">Miles from home</th><th>Local time</th><th>Card present?</th><th class="num">Fraud score</th><th>Actual (audit)</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p style="font-size:.85rem;color:var(--ink-3)">The "Actual" column comes from a later audit — the model did <em>not</em> see it when scoring. We use it to evaluate the model.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Predictive → Prescriptive · What will happen, and what should we do?</div>
+    <h3>Set the alert threshold</h3>
+    <p>The bank's finance team estimates that a <strong>missed fraud</strong> costs about <strong>$480</strong> on average (write-off plus investigation), and a <strong>false alarm</strong> costs about <strong>$15</strong> (call-center time, plus some customers who stop using the card). The sample below contains 40 audited transactions, 8 of which were fraud.</p>
+    <label class="ctl" for="thr">Decline transactions with a fraud score above: <span id="thrVal">60</span></label>
+    <input type="range" id="thr" min="5" max="95" step="5" value="60">
+    <div class="tiles">
+      <div class="tile"><div class="k">Fraud caught (TP)</div><div class="v" id="tp">–</div></div>
+      <div class="tile"><div class="k">Fraud missed (FN)</div><div class="v" id="fn">–</div></div>
+      <div class="tile"><div class="k">False alarms (FP)</div><div class="v" id="fp">–</div></div>
+      <div class="tile"><div class="k">Legit approved (TN)</div><div class="v" id="tn">–</div></div>
+      <div class="tile"><div class="k">Precision</div><div class="v" id="prec">–</div></div>
+      <div class="tile"><div class="k">Recall</div><div class="v" id="rec">–</div></div>
+      <div class="tile hi"><div class="k">Cost of errors (this sample)</div><div class="v" id="cost">–</div></div>
+    </div>
+    <p id="thrMsg" style="font-size:.92rem"></p>
+    <div class="callout think"><strong>Try it:</strong> slide the threshold from 5 to 95 and watch precision and recall move in opposite directions. Find the threshold that minimizes total cost. Then ask: would your answer change if a false alarm cost $60 because customers switch banks?</div>
+    <div class="callout"><strong>Lecture link.</strong> The model is doing <em>predictive</em> analytics (it estimates the probability that a transaction is fraud). Choosing a threshold using costs is <em>prescriptive</em> — the model cannot make that trade-off for you because it does not know what a lost customer is worth. This is why the lecture said the goal of analytics is <strong>decision support</strong>, not decision replacement.</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Practice · ungraded</div>
+    <div class="check" data-check="c1q1" data-ans="b">
+      <div class="q">1. Riverbend's fraud model learned to score transactions from three years of labeled history. Which AI component from the lecture is this?</div>
+      <div class="opts">
+        <label><input type="radio" name="c1q1" value="a">Expert system — analysts wrote if-then rules for the model to follow</label>
+        <label><input type="radio" name="c1q1" value="b">Machine learning — the model learned patterns from historical data</label>
+        <label><input type="radio" name="c1q1" value="c">Computer vision — the model inspects images of receipts</label>
+        <label><input type="radio" name="c1q1" value="d">Robotics — the model acts autonomously in the physical world</label>
+      </div>
+      <div class="fb"></div>
+    </div>
+    <div class="check" data-check="c1q2" data-ans="c">
+      <div class="q">2. The bank lowers the threshold from 60 to 30. What happens?</div>
+      <div class="opts">
+        <label><input type="radio" name="c1q2" value="a">Fewer transactions are declined, so fewer honest customers are blocked</label>
+        <label><input type="radio" name="c1q2" value="b">The model becomes more accurate because it sees more data</label>
+        <label><input type="radio" name="c1q2" value="c">More fraud is caught, but more honest customers are blocked too (recall up, precision down)</label>
+        <label><input type="radio" name="c1q2" value="d">Nothing changes — the threshold does not affect declines</label>
+      </div>
+      <div class="fb"></div>
+    </div>
+    <div class="navbtns"><button class="btn ghost" data-go="start">← Start</button><button class="btn" data-go="c2">Continue to Case 2 →</button></div>
+  </div>
+</section>
+
+<!-- ============================ CASE 2 ============================ -->
+<section class="panel" id="tab-c2" role="tabpanel">
+  <div class="card">
+    <div class="eyebrow">Case 2 · Operational analytics</div>
+    <h2>Magnolia Market: forecasting demand and ordering inventory</h2>
+    <div class="ladder"><span class="on">Descriptive</span><span class="on">Predictive</span><span class="on">Prescriptive</span><span>AI component: Machine Learning (time-series / regression)</span></div>
+    <p>Magnolia Market is a regional home-and-garden retailer. Its best-selling fall item is the <em>Heritage Garden Tote</em>. The buyer has to place next month's order with the supplier <strong>four weeks in advance</strong>. Order too many and the extra totes sit in the warehouse; order too few and customers leave empty-handed and buy from a competitor.</p>
+    <p>Until last year the buyer ordered "about what we sold last time, plus a little." Now the company has an AI forecasting tool. Your job: compare the forecasting methods, then decide how many totes to order.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Descriptive · What happened?</div>
+    <h3>Weekly unit sales, last 12 weeks</h3>
+    <div class="tiles">
+      <div class="tile"><div class="k">Total (12 wks)</div><div class="v" id="d2tot">–</div></div>
+      <div class="tile"><div class="k">Avg / week</div><div class="v" id="d2avg">–</div></div>
+      <div class="tile"><div class="k">Best week</div><div class="v" id="d2max">–</div></div>
+      <div class="tile"><div class="k">Trend (units/wk)</div><div class="v" id="d2trend">–</div></div>
+    </div>
+    <p style="font-size:.9rem">These tiles are what a Business Intelligence dashboard shows: <em>what happened</em>. They do not tell the buyer what to order.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Predictive · What will happen?</div>
+    <h3>Forecast the next 4 weeks</h3>
+    <div class="row" style="margin-bottom:8px">
+      <span style="font-size:.9rem;font-weight:600">Method:</span>
+      <div class="seg" id="fcSeg">
+        <button aria-pressed="true" data-m="naive">Same as last week</button>
+        <button aria-pressed="false" data-m="ma">3-week moving average</button>
+        <button aria-pressed="false" data-m="trend">AI trend model</button>
+      </div>
+    </div>
+    <svg class="chart" id="fcChart" viewBox="0 0 720 260" role="img" aria-label="Bar chart of 12 weeks of historical unit sales with a 4-week forecast line"></svg>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Actual sales</span><span><i class="line" style="background:var(--s2)"></i>Forecast</span></div>
+    <p id="fcExplain" style="font-size:.92rem;margin-top:10px"></p>
+    <div class="tiles">
+      <div class="tile hi"><div class="k">4-week forecast total</div><div class="v" id="fcTotal">–</div></div>
+      <div class="tile"><div class="k">Backtest error (MAE, wks 9–12)</div><div class="v" id="fcMae">–</div></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--ink-3)">Backtest: we pretend we are at week 8, forecast weeks 9–12 with each method, and measure the average miss (mean absolute error). Lower is better. This is how analysts choose between models before trusting them.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Prescriptive · What should we do?</div>
+    <h3>Choose the order quantity</h3>
+    <p>Forecasts are never exact. The AI tool reports that actual demand typically lands between <strong>85% and 115%</strong> of its forecast. Each unsold tote costs <strong>$2</strong> to hold and clear; each unit of unmet demand costs <strong>$9</strong> in lost margin and goodwill.</p>
+    <label class="ctl" for="oq">Order quantity: <span id="oqVal">–</span> units</label>
+    <input type="range" id="oq" min="900" max="1800" step="10" value="1200">
+    <div class="tiles">
+      <div class="tile"><div class="k">If demand is low (85%)</div><div class="v" id="scLo">–</div></div>
+      <div class="tile"><div class="k">If demand is as forecast</div><div class="v" id="scMid">–</div></div>
+      <div class="tile"><div class="k">If demand is high (115%)</div><div class="v" id="scHi">–</div></div>
+      <div class="tile hi"><div class="k">Expected cost</div><div class="v" id="scExp">–</div></div>
+    </div>
+    <div class="row"><button class="btn sm ghost" id="oqBest">Let the optimizer recommend</button><span id="oqMsg" style="font-size:.9rem"></span></div>
+    <div class="callout"><strong>Lecture link.</strong> Notice the three levels: the dashboard <em>described</em>, the model <em>predicted</em>, and the order decision <em>prescribed</em>. The optimizer is only as good as the costs you gave it — if the $9 stockout cost is wrong, the "optimal" order is wrong. Analysts call this "garbage in, garbage out"; the lecture called it the <strong>data challenge</strong>.</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Practice · ungraded</div>
+    <div class="check" data-check="c2q1" data-ans="c">
+      <div class="q">1. "Order 1,560 units, given holding and stockout costs." Which level of analytics produced this recommendation?</div>
+      <div class="opts">
+        <label><input type="radio" name="c2q1" value="a">Descriptive</label>
+        <label><input type="radio" name="c2q1" value="b">Predictive</label>
+        <label><input type="radio" name="c2q1" value="c">Prescriptive</label>
+        <label><input type="radio" name="c2q1" value="d">Business intelligence</label>
+      </div>
+      <div class="fb"></div>
+    </div>
+    <div class="check" data-check="c2q2" data-ans="a">
+      <div class="q">2. Why did we compare the methods on weeks 9–12 (a backtest) instead of just trusting the "AI trend model" label?</div>
+      <div class="opts">
+        <label><input type="radio" name="c2q2" value="a">A model must be evaluated on data it has not seen; a fancy name is not evidence of accuracy</label>
+        <label><input type="radio" name="c2q2" value="b">Because AI models are always the most accurate, the backtest just confirms it</label>
+        <label><input type="radio" name="c2q2" value="c">Because the moving average cannot be used for forecasting</label>
+        <label><input type="radio" name="c2q2" value="d">Backtests are required by law for retail forecasting</label>
+      </div>
+      <div class="fb"></div>
+    </div>
+    <div class="navbtns"><button class="btn ghost" data-go="c1">← Case 1</button><button class="btn" data-go="c3">Continue to Case 3 →</button></div>
+  </div>
+</section>
+
+<!-- ============================ CASE 3 ============================ -->
+<section class="panel" id="tab-c3" role="tabpanel">
+  <div class="card">
+    <div class="eyebrow">Case 3 · Customer analytics & personalization</div>
+    <h2>StreamLine: keeping the subscribers who are about to leave</h2>
+    <div class="ladder"><span class="on">Descriptive</span><span class="on">Predictive</span><span class="on">Prescriptive</span><span>AI components: Machine Learning + NLP</span></div>
+    <p>StreamLine is a $14.99/month video-streaming service with 1.2 million subscribers. Every month about <strong>4.5%</strong> cancel ("churn"). Winning a new subscriber costs about $60 in advertising, so keeping an existing one is far cheaper. The retention team has a budget for <strong>$20 "stay with us" offers</strong> (one free month plus a personalized recommendation list), but not enough to send one to everybody.</p>
+    <p>Two AI models help. A <strong>churn model</strong> (machine learning) scores each subscriber's probability of cancelling next month. A <strong>text model</strong> (natural language processing) reads support chats and reviews to detect frustration before it shows up in the numbers.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Descriptive · What happened?</div>
+    <h3>Last quarter's churn by customer segment</h3>
+    <div class="tablewrap"><table class="data">
+      <thead><tr><th>Segment</th><th class="num">Subscribers</th><th class="num">Churn rate</th><th>What the data shows</th></tr></thead>
+      <tbody>
+        <tr><td>Watched &lt; 2 hrs / month</td><td class="num">180,000</td><td class="num">11.8%</td><td>Low engagement is the strongest warning sign</td></tr>
+        <tr><td>Had a billing problem</td><td class="num">42,000</td><td class="num">9.6%</td><td>Operational failures drive cancellations</td></tr>
+        <tr><td>Contacted support (negative tone)</td><td class="num">31,000</td><td class="num">8.9%</td><td>NLP flags frustration in chat text</td></tr>
+        <tr><td>Annual plan</td><td class="num">300,000</td><td class="num">1.1%</td><td>Commitment reduces churn</td></tr>
+        <tr><td>All subscribers</td><td class="num">1,200,000</td><td class="num">4.5%</td><td>Baseline</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Predictive · NLP in action</div>
+    <h3>What the text model sees</h3>
+    <p>Click each support message to reveal the NLP model's reading. The model never "understands" the way a person does — it recognizes patterns of words that historically preceded cancellations.</p>
+    <div id="msgs">
+      <div class="msg" data-tag="<span class='pill bad'>Negative · churn risk high</span> Key signals: <em>third time</em>, <em>still</em>, <em>cancel</em>"><div class="t">"This is the third time the app has frozen during a movie and support still hasn't fixed it. Honestly thinking about cancelling."</div><div class="tag"></div></div>
+      <div class="msg" data-tag="<span class='pill good'>Positive · churn risk low</span> Key signals: <em>love</em>, <em>recommend</em>, question is about adding a feature"><div class="t">"Love the new documentary section! Is there a way to make a shared watchlist with my partner?"</div><div class="tag"></div></div>
+      <div class="msg" data-tag="<span class='pill warn'>Neutral/negative · billing issue</span> Key signals: <em>charged twice</em>, <em>refund</em> — routed to billing team, churn risk medium"><div class="t">"I was charged twice this month. Please refund the second charge."</div><div class="tag"></div></div>
+    </div>
+    <p style="font-size:.85rem;color:var(--ink-3)">Click all three to continue.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Prescriptive · What should we do?</div>
+    <h3>Spend the retention budget</h3>
+    <p>Below are eight subscribers from one manager's list. The churn model gives each a probability of leaving. The AI also estimates the <strong>uplift</strong> — how much the $20 offer would reduce that probability for this person — and the subscriber's <strong>12-month value</strong> if retained. You can afford <strong>4 offers ($80)</strong>. Select the four you would target.</p>
+    <div id="custList"></div>
+    <div class="tiles">
+      <div class="tile"><div class="k">Offers selected</div><div class="v" id="cSel">0 <small>/ 4</small></div></div>
+      <div class="tile hi"><div class="k">Expected value retained</div><div class="v" id="cVal">$0</div></div>
+      <div class="tile"><div class="k">Best possible</div><div class="v" id="cBest">?</div></div>
+    </div>
+    <div class="row"><button class="btn sm" id="cSubmit" disabled>Check my plan</button><span id="cMsg" style="font-size:.9rem"></span></div>
+    <div class="callout think"><strong>Think about it:</strong> the customer with the <em>highest</em> churn probability is not always the best target. Some people will leave no matter what (low uplift); others were never going to leave (the offer is wasted). Personalization means matching the action to the person — the lecture's <strong>personalization</strong> application.</div>
+    <div class="callout note"><strong>Privacy and ethics.</strong> StreamLine is reading customers' chats and viewing habits. Under the lecture's challenges this is a <strong>security and privacy concern</strong>: the company must disclose what it collects, secure it, and avoid using sensitive attributes in ways that discriminate. Regulators (GDPR, CCPA) and customers both punish companies that get this wrong.</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Practice · ungraded</div>
+    <div class="check" data-check="c3q1" data-ans="b">
+      <div class="q">1. The model that reads support chats and flags frustration is an example of which AI component?</div>
+      <div class="opts">
+        <label><input type="radio" name="c3q1" value="a">Computer vision</label>
+        <label><input type="radio" name="c3q1" value="b">Natural language processing</label>
+        <label><input type="radio" name="c3q1" value="c">Robotics</label>
+        <label><input type="radio" name="c3q1" value="d">Descriptive statistics</label>
+      </div>
+      <div class="fb"></div>
+    </div>
+    <div class="check" data-check="c3q2" data-ans="d">
+      <div class="q">2. A colleague says: "Just send the offer to the 4 subscribers with the highest churn probability." What is the best response?</div>
+      <div class="opts">
+        <label><input type="radio" name="c3q2" value="a">Agree — probability of churn is the only thing that matters</label>
+        <label><input type="radio" name="c3q2" value="b">Disagree — we should send offers to everyone to be fair</label>
+        <label><input type="radio" name="c3q2" value="c">Agree — the AI is always right, so we should not question its ranking</label>
+        <label><input type="radio" name="c3q2" value="d">Disagree — target where the offer changes behavior the most and the customer is worth keeping (uplift × value)</label>
+      </div>
+      <div class="fb"></div>
+    </div>
+    <div class="navbtns"><button class="btn ghost" data-go="c2">← Case 2</button><button class="btn" data-go="quiz">Go to Knowledge Check →</button></div>
+  </div>
+</section>
+
+<!-- ============================ QUIZ ============================ -->
+<section class="panel" id="tab-quiz" role="tabpanel">
+  <div class="card" id="quizGate">
+    <div class="eyebrow">Knowledge check</div>
+    <h2>Before you begin</h2>
+    <ul class="checklist" id="gateList">
+      <li id="g-name">Name and student ID entered on the Start tab</li>
+      <li id="g-c1">Case 1 complete (moved the threshold slider and answered both practice questions)</li>
+      <li id="g-c2">Case 2 complete (tried all three forecast methods, moved the order slider, answered both practice questions)</li>
+      <li id="g-c3">Case 3 complete (read all three messages, checked a retention plan, answered both practice questions)</li>
+    </ul>
+    <p id="gateMsg" style="font-size:.92rem"></p>
+    <div class="callout note"><strong>One attempt.</strong> 10 multiple-choice questions, 10 points each. Once you submit, your answers are locked and your score card appears. There is no timer, but you cannot go back to change answers after submitting.</div>
+    <button class="btn" id="startQuiz" disabled>Start the Knowledge Check</button>
+  </div>
+
+  <div class="card" id="quizBody" style="display:none">
+    <div class="eyebrow">Knowledge check · 10 questions</div>
+    <div id="quizQs"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="submitQuiz">Submit answers</button>
+      <span id="submitMsg" style="font-size:.9rem"></span>
+    </div>
+  </div>
+
+  <div id="resultWrap" style="display:none">
+    <div class="scorecard" id="scorecard">
+      <div class="eyebrow">INFO 3850 · Week 3 Lab 1 · Score card</div>
+      <div class="row" style="align-items:flex-end;gap:18px">
+        <div class="score-big" id="rScore">–</div>
+        <div style="padding-bottom:8px;font-size:1.1rem;color:var(--ink-2)">out of 100 &nbsp;·&nbsp; <span id="rCorrect"></span> of 10 correct</div>
+      </div>
+      <div class="kv">
+        <div>Student</div><div id="rName"></div>
+        <div>Student ID</div><div id="rId"></div>
+        <div>Submitted</div><div id="rTime"></div>
+        <div>Verification code</div><div><span class="vcode" id="rCode"></span></div>
+      </div>
+      <p style="font-size:.9rem;margin:6px 0 0"><strong>Deliverable:</strong> take a screenshot of this entire card (Mac: <code>Shift+Cmd+4</code>; Windows: <code>Win+Shift+S</code>) and upload it to the Week 3 Lab assignment in Canvas.</p>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h3>Review your answers</h3>
+      <p style="font-size:.9rem;color:var(--ink-2)">Explanations reference the Week 3 slides. Bring questions to class or office hours.</p>
+      <div id="review"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>INFO 3850 Machine Learning and AI · Dr. Yuan (Lucy) Zhang · Week 3 Lab. All companies, people, and data in this lab are fictional and created for teaching. &nbsp;·&nbsp; <a href="#" id="instrLink">Instructor tools</a></p>
+  <div id="instr" class="card tight">
+    <div class="row"><input type="text" id="instrPass" placeholder="Instructor passcode" style="max-width:220px"><button class="btn sm ghost" id="instrOpen">Open</button></div>
+    <div id="instrPanel" style="display:none;margin-top:10px">
+      <h4>Verify a score card</h4>
+      <p style="font-size:.85rem">Enter the values exactly as they appear on the student's screenshot.</p>
+      <div class="grid three">
+        <div><label class="ctl">Name</label><input type="text" id="vName"></div>
+        <div><label class="ctl">Student ID</label><input type="text" id="vId"></div>
+        <div><label class="ctl">Score (0–100)</label><input type="number" id="vScore" min="0" max="100" step="10"></div>
+      </div>
+      <div class="grid two" style="margin-top:8px">
+        <div><label class="ctl">Submitted (as printed, e.g. 2026-09-05 21:14)</label><input type="text" id="vTime" placeholder="YYYY-MM-DD HH:MM"></div>
+        <div><label class="ctl">&nbsp;</label><button class="btn sm" id="vGo">Compute expected code</button> <span class="vcode" id="vOut" style="margin-left:8px">—</span></div>
+      </div>
+      <h4 style="margin-top:16px">Reset this browser</h4>
+      <p style="font-size:.85rem">Clears the saved name, progress, and quiz attempt on <em>this</em> device (for testing or for a student with a documented technical problem).</p>
+      <button class="btn sm ghost" id="resetAll">Reset lab data on this device</button>
+    </div>
+  </div>
+</footer>
+<script>
+(function(){
+'use strict';
+const KEY='info3850_w3_lab1';
+const SALT='INFO3850-W3-LAB1|';
+const INSTR_PASS='zhang3850';
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+
+/* ---------- state ---------- */
+let S=load();
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');return Object.assign({name:'',id:'',c1:{slid:false,q:{}},c2:{m:{},slid:false,q:{}},c3:{msgs:{},plan:false,q:{}},quiz:{started:false,result:null}},s);}catch(e){return {name:'',id:'',c1:{slid:false,q:{}},c2:{m:{},slid:false,q:{}},c3:{msgs:{},plan:false,q:{}},quiz:{started:false,result:null}};}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} refreshProgress();}
+
+/* ---------- tabs ---------- */
+function go(tab){
+  $$('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab?'true':'false'));
+  $$('section.panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+tab));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(tab==='quiz') renderGate();
+}
+$$('nav.tabs button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.tab)));
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+
+/* ---------- identity ---------- */
+$('#stuName').value=S.name; $('#stuId').value=S.id;
+$('#stuName').addEventListener('input',e=>{S.name=e.target.value;save();});
+$('#stuId').addEventListener('input',e=>{S.id=e.target.value;save();});
+
+/* ---------- practice checks ---------- */
+const FB={
+ c1q1:{b:'Correct. The model was trained on labeled history and learned the patterns itself — that is machine learning, the AI component behind most analytics.',x:'Not quite. Nobody wrote the rules by hand; the model learned them from three years of labeled transactions. That is machine learning.'},
+ c1q2:{c:'Correct. A lower threshold flags more transactions: recall (fraud caught) rises, precision (share of flags that are real) falls, and more honest customers get blocked.',x:'Look at the slider again. Lowering the threshold declines more transactions — catching more fraud but also blocking more honest customers.'},
+ c2q1:{c:'Correct. A recommended action under costs and constraints is prescriptive analytics — "what should we do?"',x:'The forecast was predictive; turning it into a recommended order using costs is prescriptive — "what should we do?"'},
+ c2q2:{a:'Correct. Evaluating a model on data it did not see (a hold-out or backtest) is the only honest way to know if it works. Labels like "AI" are marketing, not evidence.',x:'The point of a backtest is to test a model on data it has not seen. A method\'s name or sophistication tells you nothing about its accuracy.'},
+ c3q1:{b:'Correct. Reading and classifying human language is natural language processing (NLP).',x:'The model reads written text and classifies its tone. That is natural language processing (NLP).'},
+ c3q2:{d:'Correct. The best targets are people the offer will actually change, who are worth keeping. That is uplift × value — the logic of personalization.',x:'Highest probability is not the same as biggest impact. Some high-risk customers will leave regardless; the offer is wasted on them. Target uplift × value.'}
+};
+$$('.check').forEach(box=>{
+  const id=box.dataset.check, ans=box.dataset.ans, fb=box.querySelector('.fb');
+  const c=id.slice(0,2);
+  const saved=S[c].q[id];
+  box.querySelectorAll('input').forEach(inp=>{
+    if(saved&&inp.value===saved) inp.checked=true;
+    inp.addEventListener('change',()=>{S[c].q[id]=inp.value;save();show(inp.value);});
+  });
+  function show(v){
+    box.querySelectorAll('label').forEach(l=>{l.classList.remove('correct','wrong');const i=l.querySelector('input');if(i.value===ans)l.classList.add('correct');else if(i.checked)l.classList.add('wrong');});
+    fb.className='fb show '+(v===ans?'ok':'no'); fb.textContent=(v===ans?FB[id][ans]:FB[id].x);
+  }
+  if(saved) show(saved);
+});
+
+/* ---------- Case 1: fraud ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const legitScores=[4,5,6,7,8,9,11,12,13,14,15,17,18,19,21,22,23,24,27,29,31,33,34,36,38,39,41,48,52,58,63,71];
+const fraudScores=[92,88,81,74,66,55,43,28];
+const merchLegit=['Grocery','Gas station','Pharmacy','Restaurant','Coffee shop','Hardware','Streaming','Clothing','Utility bill','Bookstore'];
+const merchFraud=['Electronics (online)','Gift cards','Jewelry (online)','Crypto exchange','Wire transfer','Electronics (online)','Luxury goods','Gaming (online)'];
+const TX=[];
+{ const r=rng(3850); let i=0;
+  legitScores.forEach(s=>{TX.push({score:s,fraud:false,amt:Math.round(8+r()*140+(s>40?r()*300:0)),merch:merchLegit[Math.floor(r()*merchLegit.length)],miles:Math.round(r()*(s>40?600:25)),hour:6+Math.floor(r()*16),present:r()<(s>40?.4:.85)});});
+  fraudScores.forEach((s,k)=>{TX.push({score:s,fraud:true,amt:Math.round(60+r()*900*(s/100)+50),merch:merchFraud[k],miles:Math.round(200+r()*2500*(s/100)),hour:(s>50?[1,2,3,4,23][Math.floor(r()*5)]:9+Math.floor(r()*10)),present:r()<(s>50?.1:.5)});});
+  TX.sort(()=>0.5-r()); TX.forEach((t,k)=>t.n=k+1);
+}
+{ const tb=$('#txTable tbody');
+  TX.slice(0,14).forEach(t=>{const tr=document.createElement('tr'); if(t.fraud)tr.className='flag';
+    tr.innerHTML=`<td>${t.n}</td><td class="num">$${t.amt.toLocaleString()}</td><td>${t.merch}</td><td class="num">${t.miles.toLocaleString()}</td><td>${String(t.hour).padStart(2,'0')}:${String(Math.floor(((t.n*37)%60))).padStart(2,'0')}</td><td>${t.present?'Yes':'No (online)'}</td><td class="num"><strong>${t.score}</strong></td><td>${t.fraud?'<span class="pill bad">Fraud</span>':'<span class="pill good">Legit</span>'}</td>`;
+    tb.appendChild(tr);});
+  const tr=document.createElement('tr'); tr.innerHTML='<td colspan="8" style="color:var(--ink-3);font-size:.85rem">… 26 more audited transactions are included in the calculations below (40 total, 8 fraudulent — fraud is oversampled in this audit set).</td>'; tb.appendChild(tr);
+}
+const FN_COST=480, FP_COST=15;
+function updThr(){
+  const t=+$('#thr').value; $('#thrVal').textContent=t;
+  let tp=0,fp=0,fn=0,tn=0;
+  TX.forEach(x=>{const flag=x.score>t; if(flag&&x.fraud)tp++; else if(flag&&!x.fraud)fp++; else if(!flag&&x.fraud)fn++; else tn++;});
+  $('#tp').textContent=tp;$('#fp').textContent=fp;$('#fn').textContent=fn;$('#tn').textContent=tn;
+  $('#prec').textContent=tp+fp?Math.round(100*tp/(tp+fp))+'%':'—'; $('#rec').textContent=Math.round(100*tp/(tp+fn))+'%';
+  const cost=fn*FN_COST+fp*FP_COST; $('#cost').textContent='$'+cost.toLocaleString();
+  let m='';
+  if(t>=80) m='Very strict threshold: almost no false alarms, but most fraud gets through. The write-offs dominate the cost.';
+  else if(t>=50) m='Moderate: a balanced-looking confusion matrix, but each missed fraud costs 32× a false alarm — is the balance really balanced?';
+  else if(t>=25) m='Aggressive: nearly all fraud is caught. False alarms are climbing — at $15 each the math still favors this, but customer patience is not in the spreadsheet.';
+  else m='Extremely aggressive: you are declining a large share of honest customers. Recall is perfect; the customer-experience cost (not fully captured by $15) would be severe.';
+  $('#thrMsg').innerHTML=`<strong>Threshold ${t}:</strong> ${m}`;
+}
+$('#thr').addEventListener('input',()=>{updThr(); if(!S.c1.slid){S.c1.slid=true;save();}});
+updThr();
+
+/* ---------- Case 2: forecasting ---------- */
+const SALES=[210,225,218,240,255,248,270,285,278,300,315,308];
+function linfit(y){const n=y.length;let sx=0,sy=0,sxy=0,sxx=0;for(let i=0;i<n;i++){const x=i+1;sx+=x;sy+=y[i];sxy+=x*y[i];sxx+=x*x;}const b=(n*sxy-sx*sy)/(n*sxx-sx*sx);const a=(sy-b*sx)/n;return{a,b};}
+function forecast(m,hist,h){const n=hist.length;if(m==='naive')return Array(h).fill(hist[n-1]);if(m==='ma'){const v=(hist[n-1]+hist[n-2]+hist[n-3])/3;return Array(h).fill(v);}const {a,b}=linfit(hist);return Array.from({length:h},(_,k)=>a+b*(n+k+1));}
+function mae(m){const f=forecast(m,SALES.slice(0,8),4);return f.reduce((s,v,i)=>s+Math.abs(v-SALES[8+i]),0)/4;}
+{ const tot=SALES.reduce((a,b)=>a+b,0); $('#d2tot').textContent=tot.toLocaleString(); $('#d2avg').textContent=Math.round(tot/12); $('#d2max').textContent=Math.max(...SALES)+' (wk '+(SALES.indexOf(Math.max(...SALES))+1)+')'; $('#d2trend').textContent='+'+linfit(SALES).b.toFixed(1); }
+const FC_TXT={naive:'<strong>Same as last week</strong> — the buyer\'s old rule of thumb. It ignores the upward trend entirely and repeats week 12 four times.',ma:'<strong>3-week moving average</strong> — smooths out noise (good), but averaging <em>past</em> weeks makes it lag behind a rising trend, so it under-forecasts.',trend:'<strong>AI trend model</strong> — fits the pattern in all 12 weeks (here, a linear trend of about +9 units/week) and projects it forward. In practice the retailer\'s tool also learns seasonality, promotions, and weather.'};
+let fcM='naive';
+function drawFc(){
+  const svg=$('#fcChart'); const W=720,H=260,L=44,R=16,T=18,B=34; const f=forecast(fcM,SALES,4);
+  const all=SALES.concat(f); const ymax=Math.ceil(Math.max(...all)*1.12/50)*50; const y=v=>T+(H-T-B)*(1-v/ymax);
+  const n=16, bw=(W-L-R)/n, x=i=>L+i*bw;
+  let s='<g class="grid">';
+  for(let g=0;g<=ymax;g+=100){s+=`<line x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}"/><text x="${L-6}" y="${y(g)+4}" text-anchor="end">${g}</text>`;}
+  s+='</g>';
+  SALES.forEach((v,i)=>{s+=`<rect data-tip="Week ${i+1}: ${v} units" x="${x(i)+bw*0.18}" y="${y(v)}" width="${bw*0.64}" height="${y(0)-y(v)}" rx="3" fill="var(--s1)"/>`;});
+  f.forEach((v,i)=>{s+=`<rect data-tip="Week ${13+i} forecast: ${Math.round(v)} units" x="${x(12+i)+bw*0.18}" y="${y(v)}" width="${bw*0.64}" height="${y(0)-y(v)}" rx="3" fill="#fff" stroke="var(--s2)" stroke-width="2" stroke-dasharray="4 3"/>`;});
+  const pts=f.map((v,i)=>`${x(12+i)+bw/2},${y(v)}`).join(' ');
+  s+=`<polyline points="${x(11)+bw/2},${y(SALES[11])} ${pts}" fill="none" stroke="var(--s2)" stroke-width="2"/>`;
+  f.forEach((v,i)=>{s+=`<circle cx="${x(12+i)+bw/2}" cy="${y(v)}" r="4.5" fill="var(--s2)" stroke="#fff" stroke-width="2"/><text x="${x(12+i)+bw/2}" y="${y(v)-9}" text-anchor="middle" font-weight="600">${Math.round(v)}</text>`;});
+  s+=`<line class="axis" x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}"/>`;
+  for(let i=0;i<16;i++){s+=`<text x="${x(i)+bw/2}" y="${H-B+16}" text-anchor="middle">${i<12?'W'+(i+1):'F'+(i+1)}</text>`;}
+  s+=`<line x1="${x(12)}" x2="${x(12)}" y1="${T}" y2="${y(0)}" stroke="#c7ccd3" stroke-dasharray="3 3"/><text x="${x(12)-4}" y="${T+10}" font-size="10" text-anchor="end">order horizon →</text>`;
+  svg.innerHTML=s;
+  $('#fcExplain').innerHTML=FC_TXT[fcM]; $('#fcTotal').textContent=Math.round(f.reduce((a,b)=>a+b,0)).toLocaleString()+' units'; $('#fcMae').textContent=mae(fcM).toFixed(1)+' units';
+  updOq();
+}
+$$('#fcSeg button').forEach(b=>b.addEventListener('click',()=>{$$('#fcSeg button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');fcM=b.dataset.m;S.c2.m[fcM]=true;save();drawFc();}));
+S.c2.m.naive=true;
+const HOLD=2, SHORT=9, SCN=[[0.85,.25],[1,.5],[1.15,.25]];
+function ocost(q,d){return d>q?(d-q)*SHORT:(q-d)*HOLD;}
+function ecost(q,F){return SCN.reduce((s,[m,p])=>s+p*ocost(q,F*m),0);}
+function updOq(){
+  const q=+$('#oq').value; $('#oqVal').textContent=q; const F=forecast(fcM,SALES,4).reduce((a,b)=>a+b,0);
+  const c=SCN.map(([m])=>ocost(q,F*m)); $('#scLo').textContent='$'+Math.round(c[0]).toLocaleString(); $('#scMid').textContent='$'+Math.round(c[1]).toLocaleString(); $('#scHi').textContent='$'+Math.round(c[2]).toLocaleString(); $('#scExp').textContent='$'+Math.round(ecost(q,F)).toLocaleString();
+}
+$('#oq').addEventListener('input',()=>{updOq(); if(!S.c2.slid){S.c2.slid=true;save();} $('#oqMsg').textContent='';});
+$('#oqBest').addEventListener('click',()=>{const F=forecast(fcM,SALES,4).reduce((a,b)=>a+b,0);let best=null,bc=1e9;for(let q=900;q<=1800;q+=10){const c=ecost(q,F);if(c<bc){bc=c;best=q;}}$('#oq').value=best;updOq();S.c2.slid=true;save();$('#oqMsg').innerHTML=`Optimizer: order <strong>${best}</strong> units (expected cost $${Math.round(bc)}). Because a stockout costs 4.5× a leftover, it orders <em>above</em> the ${Math.round(F)}-unit forecast.`;});
+drawFc();
+
+/* tooltips */
+const tip=$('#tip');
+document.addEventListener('mousemove',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t){tip.textContent=t.dataset.tip;tip.style.opacity=1;tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-30)+'px';}else tip.style.opacity=0;});
+
+/* ---------- Case 3: churn ---------- */
+const CUST=[
+ {n:'Alicia R.',p:.82,u:.05,v:180,d:'Card declined twice; has not logged in for 31 days; searched "cancel subscription"'},
+ {n:'Ben T.',p:.61,u:.30,v:180,d:'Watch time fell 60% since finishing a favorite series; no complaints'},
+ {n:'Carla M.',p:.45,u:.25,v:240,d:'Family plan; negative support chat about app freezing (NLP flag)'},
+ {n:'Dev P.',p:.38,u:.20,v:240,d:'Family plan; price-sensitive — opened a competitor\'s promo email'},
+ {n:'Elena S.',p:.70,u:.12,v:180,d:'Moving abroad next month (told support); service unavailable there'},
+ {n:'Frank O.',p:.15,u:.02,v:240,d:'Family plan; watches daily; 3-year subscriber'},
+ {n:'Grace L.',p:.55,u:.28,v:180,d:'Billing error last month (refunded); watch time still healthy'},
+ {n:'Hiro K.',p:.30,u:.15,v:180,d:'Light user; mostly watches one weekly show'}
+];
+const BEST=[...CUST].sort((a,b)=>b.u*b.v-a.u*a.v).slice(0,4).reduce((s,c)=>s+c.u*c.v,0);
+let sel=new Set();
+{ const list=$('#custList');
+  CUST.forEach((c,i)=>{const d=document.createElement('label');d.className='cust';d.innerHTML=`<input type="checkbox" data-i="${i}"><span class="nm">${c.n}</span><span title="Churn probability">Churn <strong>${Math.round(c.p*100)}%</strong> <span class="bar"><i style="width:${c.p*100}%"></i></span></span><span class="hide-sm" title="How much the offer reduces churn probability">Uplift <strong>${Math.round(c.u*100)} pts</strong></span><span class="hide-sm" title="12-month value if retained">Value <strong>$${c.v}</strong></span><span class="drv">${c.d}</span>`;list.appendChild(d);
+    d.querySelector('input').addEventListener('change',e=>{if(e.target.checked){if(sel.size>=4){e.target.checked=false;$('#cMsg').textContent='Budget allows only 4 offers.';return;}sel.add(i);}else sel.delete(i);d.classList.toggle('sel',e.target.checked);updC();});});
+}
+function updC(){let v=0;sel.forEach(i=>v+=CUST[i].u*CUST[i].v);$('#cSel').innerHTML=sel.size+' <small>/ 4</small>';$('#cVal').textContent='$'+v.toFixed(0);$('#cSubmit').disabled=sel.size!==4;if(sel.size===4)$('#cMsg').textContent='';}
+$('#cSubmit').addEventListener('click',()=>{let v=0;sel.forEach(i=>v+=CUST[i].u*CUST[i].v);$('#cBest').textContent='$'+BEST.toFixed(0);const pct=Math.round(100*v/BEST);S.c3.plan=true;save();
+  const bestNames=[...CUST].sort((a,b)=>b.u*b.v-a.u*a.v).slice(0,4).map(c=>c.n).join(', ');
+  $('#cMsg').innerHTML=pct>=100?`<span class="pill good">Optimal</span> Your plan captures the maximum expected value. Notice Alicia (82% churn) is not in it — she is leaving regardless.`:`<span class="pill warn">${pct}% of optimal</span> The optimal set is ${bestNames} — the highest uplift × value, not the highest churn probability. Feel free to adjust and re-check.`;});
+$$('#msgs .msg').forEach((m,i)=>{m.addEventListener('click',()=>{m.classList.add('open');m.querySelector('.tag').innerHTML=m.dataset.tag;S.c3.msgs[i]=true;save();});});
+
+/* ---------- Quiz ---------- */
+const QUIZ=[
+ {q:'Riverbend Bank\'s fraud model assigns a score to each transaction. Which statement best describes how the model was built and which AI component it represents?',o:['Analysts wrote a fixed list of rules ("decline if amount > $500") — an expert system','The model learned patterns from three years of transactions labeled fraud/legitimate — machine learning','The model reads photos of receipts to spot forgeries — computer vision','The model chats with customers to ask if the purchase was theirs — natural language processing'],a:1,e:'Learning patterns from labeled historical data is machine learning (Slide 2). Expert systems use hand-written rules; computer vision and NLP work on images and language.'},
+ {q:'Riverbend raises its decline threshold from 40 to 80. What is the most likely result?',o:['More fraud is caught and fewer honest customers are blocked','Fewer honest customers are blocked, but more fraud slips through','The model\'s accuracy improves because it retrains on the new threshold','No change — thresholds only affect reporting'],a:1,e:'A higher threshold declines fewer transactions: false alarms fall, missed fraud rises. Precision up, recall down. The model itself is unchanged — the threshold is a business decision.'},
+ {q:'Riverbend\'s monthly report shows fraud losses by region and merchant category for last quarter. Which level of analytics is this?',o:['Descriptive','Predictive','Prescriptive','Artificial intelligence'],a:0,e:'It answers "what happened?" — descriptive analytics / business intelligence (Slides 4, 7, 10).'},
+ {q:'At Magnolia Market, the AI tool produced a 4-week demand forecast, and the buyer then used holding and stockout costs to pick an order quantity. The forecast is ____ and the order decision is ____.',o:['descriptive; predictive','predictive; prescriptive','prescriptive; predictive','descriptive; prescriptive'],a:1,e:'Forecasting "what could happen" is predictive; recommending an action under costs and constraints is prescriptive (Slide 4 and the taxonomy on Slide 10).'},
+ {q:'Magnolia\'s tool reports that actual demand usually lands between 85% and 115% of its forecast. What is the best interpretation for the buyer?',o:['The model is broken and should not be used until it is exact','Forecasts carry uncertainty; the decision should account for the range, not just the point estimate','Always order 115% of the forecast to be safe','Ignore the range — only the point forecast matters'],a:1,e:'Predictions are probability-based, not certain (Slide 4: "foreseeing the future"). Good prescriptive analytics weighs the cost of being wrong in each direction — which is why the optimizer ordered above the forecast.'},
+ {q:'StreamLine\'s model reads support chats and reviews to flag frustrated subscribers. Which AI component is doing this work?',o:['Robotics','Computer vision','Natural language processing','An expert system'],a:2,e:'Interpreting written human language is natural language processing (Slide 2).'},
+ {q:'StreamLine can afford retention offers for only some at-risk subscribers. Based on Case 3, who should the offers target?',o:['The subscribers with the highest churn probability','The subscribers who have been customers the longest','Subscribers for whom the offer changes behavior the most and who are worth keeping (uplift × value)','Everyone equally, chosen at random'],a:2,e:'Personalization (Slide 3) means matching the action to the person. Some high-risk subscribers leave regardless; the offer is wasted on them. Target expected impact, not raw risk.'},
+ {q:'StreamLine analyzes customers\' viewing habits and support conversations to personalize offers. Which lecture challenge does this raise most directly, and what is the responsible response?',o:['Finding analytics talent — hire more data scientists','Security and privacy concerns — disclose data use, secure the data, and avoid discriminatory use','Technological limitations — buy faster servers','Justifying ROI — stop collecting data until it pays off'],a:1,e:'Handling personal data at scale is the security and privacy challenge (Slide 9). Transparency, security, and fair use are the responsible answers — and regulators enforce them.'},
+ {q:'According to the lecture\'s distinction among Business Intelligence, Business Analytics, and Data Science, which activity is best labeled Business Intelligence?',o:['Building an algorithm that finds hidden patterns in 2 million transactions','Forecasting next quarter\'s subscriber churn','A dashboard reporting last quarter\'s sales by region','Optimizing an order quantity under cost constraints'],a:2,e:'Slide 7: BI → reporting/visualization; BA → forecasting/foreseeing; Data Science → algorithmic/mathematical. A dashboard of past results is BI.'},
+ {q:'Magnolia\'s veteran buyer refuses to use the forecasting tool: "I\'ve ordered by feel for 20 years and it\'s worked fine." Which challenge from the lecture does this illustrate?',o:['Cultural barriers — "old habits die hard"','Data quality problems','Technological limitations','Security and privacy concerns'],a:0,e:'Resistance to evidence-based decision-making is the cultural barrier from Slide 9. Slide 8 noted that a new generation of decision makers is shifting this culture.'}
+];
+function renderGate(){
+  const ok1=S.name.trim().length>1&&S.id.trim().length>2;
+  const c1=S.c1.slid&&S.c1.q.c1q1&&S.c1.q.c1q2;
+  const c2=S.c2.m.naive&&S.c2.m.ma&&S.c2.m.trend&&S.c2.slid&&S.c2.q.c2q1&&S.c2.q.c2q2;
+  const c3=S.c3.msgs[0]&&S.c3.msgs[1]&&S.c3.msgs[2]&&S.c3.plan&&S.c3.q.c3q1&&S.c3.q.c3q2;
+  $('#g-name').classList.toggle('done',!!ok1);$('#g-c1').classList.toggle('done',!!c1);$('#g-c2').classList.toggle('done',!!c2);$('#g-c3').classList.toggle('done',!!c3);
+  const all=ok1&&c1&&c2&&c3;
+  $('#startQuiz').disabled=!all;
+  $('#gateMsg').textContent=all?'All set. When you are ready, start the Knowledge Check.':'Complete the items above to unlock the Knowledge Check.';
+  if(S.quiz.result) showResult(); else if(S.quiz.started&&all&&$('#quizBody').style.display!=='block') startQuiz();
+}
+function startQuiz(){
+  if(!S.quiz.started){S.quiz.started=true;save();}
+  $('#quizGate').style.display='none';$('#quizBody').style.display='block';
+  const w=$('#quizQs'); if(w.children.length) return;
+  QUIZ.forEach((q,i)=>{const d=document.createElement('div');d.className='qitem';d.innerHTML=`<div class="qn">QUESTION ${i+1} OF ${QUIZ.length}</div><div class="q">${q.q}</div><div class="opts">${q.o.map((o,k)=>`<label><input type="radio" name="q${i}" value="${k}">${o}</label>`).join('')}</div>`;w.appendChild(d);});
+}
+$('#startQuiz').addEventListener('click',startQuiz);
+let armed=false;
+$('#submitQuiz').addEventListener('click',()=>{
+  const ans=QUIZ.map((_,i)=>{const c=document.querySelector(`input[name=q${i}]:checked`);return c?+c.value:null;});
+  const missing=ans.map((a,i)=>a===null?i+1:null).filter(x=>x);
+  if(missing.length){$('#submitMsg').innerHTML=`<span class="pill warn">Unanswered: Q${missing.join(', Q')}</span>`;armed=false;$('#submitQuiz').textContent='Submit answers';return;}
+  if(!armed){armed=true;$('#submitQuiz').textContent='Click again to confirm — this is your only attempt';$('#submitMsg').textContent='';return;}
+  const correct=ans.filter((a,i)=>a===QUIZ[i].a).length; const score=correct*10;
+  const d=new Date(); const pad=n=>String(n).padStart(2,'0'); const stamp=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  S.quiz.result={ans,correct,score,stamp,code:vcode(S.name,S.id,score,stamp)};save();showResult();
+});
+function fnv(str){let h=0x811c9dc5;const b=new TextEncoder().encode(str);for(let i=0;i<b.length;i++){h^=b[i];h=Math.imul(h,0x01000193)>>>0;}return h>>>0;}
+function canon(name,id,score,stamp){return SALT+name.trim().toLowerCase().replace(/\s+/g,' ')+'|'+id.trim().toUpperCase()+'|'+score+'|'+stamp.trim();}
+function vcode(name,id,score,stamp){const h=fnv(canon(name,id,score,stamp)).toString(16).toUpperCase().padStart(8,'0');return h.slice(0,4)+'-'+h.slice(4);}
+function showResult(){
+  const r=S.quiz.result; $('#quizGate').style.display='none';$('#quizBody').style.display='none';$('#resultWrap').style.display='block';
+  $('#rScore').textContent=r.score;$('#rCorrect').textContent=r.correct;$('#rName').textContent=S.name;$('#rId').textContent=S.id;$('#rTime').textContent=r.stamp;$('#rCode').textContent=r.code;
+  const w=$('#review'); w.innerHTML='';
+  QUIZ.forEach((q,i)=>{const ok=r.ans[i]===q.a;const d=document.createElement('div');d.className='qitem';d.innerHTML=`<div class="qn">QUESTION ${i+1} · ${ok?'<span class="pill good">Correct</span>':'<span class="pill bad">Incorrect</span>'}</div><div class="q">${q.q}</div><div style="font-size:.92rem">Your answer: ${q.o[r.ans[i]]}${ok?'':'<br>Correct answer: <strong>'+q.o[q.a]+'</strong>'}</div><div class="fb show" style="color:var(--ink-2)">${q.e}</div>`;w.appendChild(d);});
+  document.getElementById('dot-quiz').classList.add('done');
+}
+
+/* ---------- progress ---------- */
+function refreshProgress(){
+  const c1=!!(S.c1.slid&&S.c1.q.c1q1&&S.c1.q.c1q2), c2=!!(S.c2.m.naive&&S.c2.m.ma&&S.c2.m.trend&&S.c2.slid&&S.c2.q.c2q1&&S.c2.q.c2q2), c3=!!(S.c3.msgs[0]&&S.c3.msgs[1]&&S.c3.msgs[2]&&S.c3.plan&&S.c3.q.c3q1&&S.c3.q.c3q2), st=S.name.trim().length>1&&S.id.trim().length>2, qz=!!S.quiz.result;
+  $('#dot-start').classList.toggle('done',st);$('#dot-c1').classList.toggle('done',c1);$('#dot-c2').classList.toggle('done',c2);$('#dot-c3').classList.toggle('done',c3);$('#dot-quiz').classList.toggle('done',qz);
+  $('#progressbar').style.width=(20*[st,c1,c2,c3,qz].filter(Boolean).length)+'%';
+  if($('#tab-quiz').classList.contains('active')) renderGate();
+}
+refreshProgress();
+if(S.quiz.result) showResult();
+
+/* ---------- instructor ---------- */
+$('#instrLink').addEventListener('click',e=>{e.preventDefault();$('#instr').classList.toggle('show');});
+$('#instrOpen').addEventListener('click',()=>{if($('#instrPass').value===INSTR_PASS){$('#instrPanel').style.display='block';}else{$('#instrPass').value='';$('#instrPass').placeholder='Incorrect passcode';}});
+$('#vGo').addEventListener('click',()=>{$('#vOut').textContent=vcode($('#vName').value,$('#vId').value,+$('#vScore').value,$('#vTime').value);});
+$('#resetAll').addEventListener('click',()=>{try{localStorage.removeItem(KEY);}catch(e){}location.href=location.pathname;});
+if(new URLSearchParams(location.search).has('instructor')){$('#instr').classList.add('show');}
+})();
+</script>
+</body>
+</html>
