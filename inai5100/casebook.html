@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Four business process cases and sixteen automation decisions for INAI 5100.">
+<title>The Automation Casebook</title>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ink:#16202B; --ink-2:#3D4E5C; --ink-3:#6B7F8D;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EFF1;
+  --rule:#D3DDE2; --rule-strong:#B4C3CB;
+  --accent:#0F6E6E; --accent-2:#0B5555; --accent-soft:#E0EFEE;
+  --keep:#9C5A00; --keep-soft:#FBEEDC;
+  --auto:#2C6349; --auto-soft:#E2EFE8;
+  --stop:#9B2C2C; --stop-soft:#F8E7E7;
+  --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px -12px rgba(22,32,43,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+    --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+    --rule:#2A3742; --rule-strong:#3B4B58;
+    --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+    --keep:#D89A4A; --keep-soft:#31251A;
+    --auto:#68B08C; --auto-soft:#16281F;
+    --stop:#DE8585; --stop-soft:#301A1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+  --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+  --rule:#2A3742; --rule-strong:#3B4B58;
+  --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+  --keep:#D89A4A; --keep-soft:#31251A;
+  --auto:#68B08C; --auto-soft:#16281F;
+  --stop:#DE8585; --stop-soft:#301A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast-in{max-width:1200px;margin:0 auto;padding:22px 24px 20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-size:29px;line-height:1.14;margin:0;font-weight:600;letter-spacing:-.017em;text-wrap:balance}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:15px;max-width:60ch}
+.idbox{display:flex;flex-direction:column;gap:5px;min-width:214px}
+.idbox label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.idrow{display:flex;gap:8px}
+input[type=text],select{
+  font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);
+  color:var(--ink);min-width:0;width:100%}
+input[type=text]:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---------- progress rail ---------- */
+.rail{background:var(--surface-2);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40}
+.rail-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;gap:26px;
+  align-items:center;overflow-x:auto}
+.rail-grp{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.rail-name{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pip{width:22px;height:6px;border-radius:1px;background:var(--rule-strong);transition:background .18s}
+.pip.done{background:var(--auto)}
+.pip.miss{background:var(--stop)}
+.pip.here{background:var(--accent)}
+.rail-score{margin-left:auto;flex:0 0 auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;margin:26px 0 0;box-shadow:var(--shadow)}
+.intro h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15px;max-width:74ch}
+.intro p:last-child{margin-bottom:0}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.howto div{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.howto b{display:block;font-size:13.5px;margin-bottom:2px}
+.howto span{font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- case ---------- */
+.case{margin-top:34px;scroll-margin-top:64px}
+.case-head{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:18px}
+.case-kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.case-head h2{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.case-head .org{margin:4px 0 0;color:var(--ink-3);font-size:14px;
+  font-family:"IBM Plex Mono",monospace}
+.case-body{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:920px){.case-body{grid-template-columns:1fr}}
+
+/* dossier */
+.dossier{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:921px){.dossier{position:sticky;top:60px}}
+.dossier h3{margin:0;padding:12px 16px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.dossier .ctx{padding:14px 16px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.maptable{width:100%;border-collapse:collapse;font-size:13px}
+.maptable th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 10px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.maptable td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.maptable tr:last-child td{border-bottom:none}
+.maptable td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;width:26px}
+.maptable td.w{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;font-size:12px}
+.maptable tr.waits{background:var(--keep-soft)}
+.maptable tr.waits td.w{color:var(--keep);font-weight:600}
+.dossier .note{padding:12px 16px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--rule);
+  background:var(--surface-2)}
+
+/* decisions */
+.decks{display:flex;flex-direction:column;gap:16px}
+.dec{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:18px 20px;box-shadow:var(--shadow)}
+.dec.locked{opacity:.55}
+.dec-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dec h4{margin:5px 0 4px;font-size:17.5px;font-weight:600;letter-spacing:-.01em;line-height:1.32;text-wrap:balance}
+.dec .hint{margin:0 0 13px;font-size:14px;color:var(--ink-2)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:13px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;
+  font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);
+  border-radius:4px;margin-top:2px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* verdict */
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:13px 16px;border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{color:var(--ink);font-weight:600}
+
+/* ---------- summary ---------- */
+.summary{margin-top:44px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:8px;padding:26px;box-shadow:var(--shadow)}
+.summary h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.summary .lede{margin:0 0 20px;color:var(--ink-2);font-size:15px;max-width:70ch}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.reflect{margin-bottom:20px}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;
+  padding:11px 12px;border:1px solid var(--rule-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);resize:vertical;min-height:92px}
+textarea:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#submitMsg{margin-top:12px;font-size:14.5px}
+#submitMsg.good{color:var(--auto);font-weight:600}
+#submitMsg.bad{color:var(--stop)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.navb{display:inline-block;font-size:13.5px;font-weight:600;padding:9px 15px;border-radius:6px;
+  background:transparent;color:var(--accent);text-decoration:none;border:1px solid var(--rule-strong)}
+.navb:hover{background:var(--accent-soft);border-color:var(--accent)}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <p class="eyebrow">INAI 5100 · Weeks 4–5 · Map It, Then Build It</p>
+      <h1>The Automation Casebook</h1>
+      <p class="sub">Four real-shaped processes. Sixteen decisions. The tool is the easy half — this is the other half.</p>
+    </div>
+<div class="nav" style="display:flex;gap:9px;flex-wrap:wrap;align-items:center"><a class="navb" href="./reading-a-process.html">← Start here</a><a class="navb" href="./build-bench.html">Part 2: Build Bench →</a></div>
+    <div class="idbox">
+      <label for="who">Your name</label>
+      <input type="text" id="who" placeholder="Last, First" autocomplete="name">
+      <div class="idrow">
+        <select id="sect" aria-label="Section">
+          <option value="">Section…</option>
+          <option value="001">001 — in class</option>
+          <option value="OL1">OL1 — online</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="rail" aria-label="Progress"><div class="rail-in" id="rail"></div></nav>
+
+<div class="wrap">
+  <section class="intro">
+    <h2>How this works</h2>
+    <p>Each case opens with an <strong>as-is process map</strong> — what actually happens, who does it, and where the work sits waiting. It stays on screen while you decide. Read it first; every decision depends on something in it.</p>
+    <div class="howto">
+      <div><b>Choose, then check</b><span>Pick your answer before revealing the verdict. In class, we'll poll the room first.</span></div>
+      <div><b>The reasoning is the point</b><span>Every verdict explains why — including why the tempting wrong answer is tempting.</span></div>
+      <div><b>Wrong is useful</b><span>Your score isn't a grade. The traps are where the real lesson is.</span></div>
+      <div><b>Finish with a reflection</b><span>At the end, apply it to a process from your own organization.</span></div>
+    </div>
+  </section>
+
+  <main id="cases"></main>
+
+  <section class="summary" id="summary">
+    <h2>Your casebook</h2>
+    <p class="lede">Work through the cases above, then answer the two reflections, download your casebook, and upload the file to the Canvas assignment.</p>
+    <div class="tally">
+      <div><div class="k">Decisions made</div><div class="v" id="tMade">0<span style="font-size:15px;color:var(--ink-3)">/16</span></div></div>
+      <div><div class="k">First-try correct</div><div class="v" id="tRight">0</div></div>
+      <div><div class="k">Traps hit</div><div class="v" id="tTrap">0</div></div>
+      <div><div class="k">Cases finished</div><div class="v" id="tCase">0<span style="font-size:15px;color:var(--ink-3)">/4</span></div></div>
+    </div>
+
+    <div class="reflect">
+      <label for="r1">Your own process</label>
+      <p class="q">Name one process at your organization. Which single step is the judgment — the one that genuinely needs a person? What surrounds it that a machine could do?</p>
+      <textarea id="r1" placeholder="The process is… The judgment step is… What surrounds it is…"></textarea>
+    </div>
+    <div class="reflect">
+      <label for="r2">The one you'd delete</label>
+      <p class="q">Is there a step in that process you could delete outright rather than automate? What would actually break if you stopped doing it?</p>
+      <textarea id="r2" placeholder="I would delete… What would break is…"></textarea>
+    </div>
+
+    <p class="privacy">Nothing on this page is sent anywhere — your answers stay in your browser until you download them. Keep your own examples general: no customer names, patient information, or anything confidential to your employer.</p>
+    <div class="acts">
+      <button class="go" id="dlBtn">Download your casebook</button>
+    </div>
+    <p id="submitMsg"></p>
+  </section>
+
+  <footer>
+    <span>INAI 5100 · AI in Business Operations · Dr. Lucy Zhang</span>
+    <span class="mono">Part 2 of 3 · Casebook</span>
+  </footer>
+</div>
+
+<script>
+const CASES = [
+{
+  id:"riverside", kick:"Case 01 · Nonprofit",
+  title:"Volunteers arrive faster than anyone answers them",
+  org:"Riverside Community Center · 6 staff · volunteer intake",
+  ctx:"Riverside runs after-school tutoring, weekend events, and an office that survives on volunteers. Sign-ups come through a Google Form. One part-time coordinator handles all of them.",
+  map:[
+    ["1","Volunteer submits the form","Volunteer","—","Google Form"],
+    ["2","Row lands in the spreadsheet","System","—","Google Sheets"],
+    ["3","Coordinator checks the sheet","Coordinator","up to 3 days","Google Sheets"],
+    ["4","Reads the response, writes a summary","Coordinator","—","By hand"],
+    ["5","Decides which program it fits","Coordinator","—","Judgment"],
+    ["6","Emails the program lead","Coordinator","1–2 days","Gmail"],
+    ["7","Program lead contacts the volunteer","Program lead","varies","Gmail"]
+  ],
+  waits:[2,5,6],
+  note:"Three of seven steps are waiting. Roughly a third of sign-ups never hear back.",
+  decisions:[
+    { n:"Decision 1 · The boundary", q:"Which step genuinely needs a person?",
+      hint:"Only one of these requires context the system does not hold.",
+      opts:[
+        {t:"Step 3 — checking the sheet", s:"It takes time and nobody enjoys it."},
+        {t:"Step 4 — writing the summary", s:"It requires reading and condensing."},
+        {t:"Step 5 — deciding which program fits", s:"It weighs the person against what each program needs."},
+        {t:"Step 7 — contacting the volunteer", s:"It's the first human contact."}
+      ], a:2,
+      why:"<p><strong>Step 5 is the judgment.</strong> Program fit depends on things the form never captures — which lead has capacity, whether this person's schedule survives contact with reality, whether an over-eager volunteer needs a gentler starting point. That is context the system does not hold.</p><p>Step 3 is pure waiting. Step 4 is condensing text, which is exactly what language models are good at. Step 7 <em>feels</em> like judgment because it is the human moment, but the decision was already made at step 5 — step 7 is executing it.</p>",
+      trapIdx:3, trapWhy:"Step 7 is the most common wrong answer, and it's a good instinct: it's where a person talks to a person. But warmth isn't the same as judgment. The decision was made two steps earlier." },
+    { n:"Decision 2 · The trigger", q:"What should start the scenario?",
+      hint:"Riverside is on free tiers. Sign-ups arrive a few times a week, unpredictably.",
+      opts:[
+        {t:"Scheduled — run every 15 minutes", s:"Simple and predictable."},
+        {t:"Polling — watch for new spreadsheet rows", s:"Checks on an interval, processes what's new."},
+        {t:"Instant webhook from Google Forms", s:"Fires the moment someone submits."},
+        {t:"Manual — the coordinator runs it", s:"Full control over when it fires."}
+      ], a:1,
+      why:"<p><strong>Polling on new rows.</strong> It processes only actual sign-ups, and Google Sheets supports it directly.</p><p>Do the arithmetic on the scheduled option: every 15 minutes is 96 runs a day, about 2,880 a month, against a free plan of 1,000 operations. You'd exhaust the budget in under two weeks, and almost every run would find nothing to do.</p><p>A manual trigger just moves the three-day wait — the coordinator still has to remember.</p>",
+      trapIdx:0, trapWhy:"Scheduled looks like the safe, simple choice, and it's the one that quietly burns a free plan. Always convert an interval into runs per month before you save it." },
+    { n:"Decision 3 · The AI step", q:"Where does AI actually belong here?",
+      hint:"One lightweight step. Remember: if a formula could do it reliably, use the formula.",
+      opts:[
+        {t:"Decide which program each volunteer joins and email the lead", s:"Removes the bottleneck entirely."},
+        {t:"Count sign-ups per week and calculate the trend", s:"Gives leadership a number they've asked for."},
+        {t:"Summarize the response and suggest a program, for the coordinator to approve", s:"Drafts step 4, proposes step 5."},
+        {t:"Rewrite the volunteer's answers to sound more professional", s:"Cleans up the record."}
+      ], a:2,
+      why:"<p><strong>Summarize and suggest — a person still approves.</strong> This automates step 4 completely and turns step 5 from blank-page work into a yes-or-adjust, which is the pattern that wins: don't automate the judgment, automate everything around it.</p><p>The first option hands the judgment to the model with nobody reviewing it — the one AI placement the course tells you not to make. Counting sign-ups is arithmetic; that's a formula. Rewriting a volunteer's own words to sound professional destroys the signal the coordinator is reading for.</p>",
+      trapIdx:0, trapWhy:"Fully automating the decision is the most tempting option because it removes the most work. It also puts a model in charge of a judgment with no review — expensive to get wrong, and hard to notice when it is." },
+    { n:"Decision 4 · The prompt", q:"Which prompt survives running unattended?",
+      hint:"Nobody is watching this run. Some sign-ups will be blank, joking, or three words long.",
+      opts:[
+        {t:"“Summarize this volunteer sign-up and say which program they should join.”", s:"Clear and direct."},
+        {t:"“You are a volunteer intake assistant. Summarize the response in at most 2 sentences. Then reply with one of: Tutoring, Events, Admin. If the response is empty or unclear, reply exactly: NEEDS REVIEW.”", s:"Longer and more specific."},
+        {t:"“You are an experienced nonprofit volunteer coordinator with 20 years of experience. Think step by step and be thorough.”", s:"Establishes deep expertise."},
+        {t:"“Summarize this in 2 sentences. Be accurate and do not make anything up.”", s:"Sets a length and warns against invention."}
+      ], a:1,
+      why:"<p><strong>The second one has all four parts:</strong> role, task, output constraint, and a fallback. The constraint matters most — naming the allowed values (Tutoring, Events, Admin) is what makes the output safe for the next module to branch on. The fallback matters second — <span class=\"mono\">NEEDS REVIEW</span> gives a blank sign-up a predictable answer instead of an invented one.</p><p>Option 4 is close and fails on the empty case: “don't make anything up” is a wish, not an instruction the model can act on when handed nothing.</p><p>Option 3 is the elaborate-persona prompt. Twenty years of imaginary experience constrains nothing about the output.</p>",
+      trapIdx:2, trapWhy:"Long persona prompts feel sophisticated and do almost nothing. Constraints on the output shape are what make a prompt work unattended — not adjectives about who the model is pretending to be." }
+  ]
+},
+{
+  id:"deltaridge", kick:"Case 02 · Small business",
+  title:"Every invoice takes four days and one of them is a binder",
+  org:"Delta Ridge Supply · 22 employees · accounts payable",
+  ctx:"Delta Ridge is a regional plumbing supplier. Invoices arrive by email to a shared AP inbox. One AP clerk processes roughly 60 a week. Anything over $500 needs the operations manager's approval.",
+  map:[
+    ["1","Vendor emails an invoice","Vendor","—","Shared inbox"],
+    ["2","Clerk downloads it, saves to Drive","AP clerk","—","Google Drive"],
+    ["3","Clerk types the details into a sheet","AP clerk","—","Google Sheets"],
+    ["4","Clerk decides who approves it","AP clerk","—","Rule: over $500"],
+    ["5","Manager reviews and approves","Ops manager","2–4 days","Email"],
+    ["6","Clerk marks it paid in the sheet","AP clerk","—","Google Sheets"],
+    ["7","Clerk prints and files a paper copy","AP clerk","—","Binder"]
+  ],
+  waits:[4],
+  note:"The binder has not been opened in two years. Nobody can say who asked for it.",
+  decisions:[
+    { n:"Decision 1 · Delete first", q:"Which step should be deleted rather than automated?",
+      hint:"Delete, then simplify, then automate. Ask of every step: what breaks if we stop?",
+      opts:[
+        {t:"Step 2 — saving to Drive", s:"The email already contains the invoice."},
+        {t:"Step 3 — typing details into the sheet", s:"Slow and error-prone."},
+        {t:"Step 5 — manager approval", s:"It's the longest delay in the process."},
+        {t:"Step 7 — printing and filing a paper copy", s:"A duplicate of the Drive copy nobody opens."}
+      ], a:3,
+      why:"<p><strong>Delete the binder.</strong> A paper duplicate of a digital file that no one has opened in two years is the clearest possible answer to “what breaks if we stop doing this?” Nothing breaks. And the retention requirement it was presumably created for is satisfied by the Drive copy.</p><p>This is the step most teams automate — a scheduled print job, and now the useless binder fills itself. You have paid to preserve something you should have removed, and now it's fast, cheap, and permanent, so nobody will revisit it.</p><p>Step 3 should be automated, not deleted — the data is needed. Step 5 is real approval authority.</p>",
+      trapIdx:1, trapWhy:"Step 3 is the obvious automation target and it's a fine one — but the question was what to delete. Automating first and deleting never is exactly the habit this case is built to break." },
+    { n:"Decision 2 · The boundary", q:"Which step is genuine human judgment?",
+      hint:"Look carefully at step 4. Read what's in the System column.",
+      opts:[
+        {t:"Step 4 — deciding who approves it", s:"A routing decision the clerk makes every time."},
+        {t:"Step 5 — the manager approving the invoice", s:"Someone accepting financial responsibility."},
+        {t:"Step 6 — marking it paid", s:"Recording a financial fact."},
+        {t:"Both steps 4 and 5", s:"Both involve a decision."}
+      ], a:1,
+      why:"<p><strong>Only step 5.</strong> Step 4 <em>looks</em> like a decision but the System column gives it away: <span class=\"mono\">Rule: over $500</span>. The answer is always derivable from data already in hand. That's a rule, and a rule belongs to the machine.</p><p>Step 5 is different. The manager is deciding whether this expense is justified — whether the vendor delivered, whether this was authorized, whether the amount is plausible. That draws on context no system holds.</p><p>This distinction is worth more than the technical half of the course: a step that involves a person is not automatically a step that requires one.</p>",
+      trapIdx:3, trapWhy:"Choosing both feels safe and cautious. But treating a documented threshold as human judgment is how organizations keep people doing arithmetic — and it's the most common reason automation projects deliver less than they should." },
+    { n:"Decision 3 · The test that matters", q:"Which test input is most likely to break your scenario?",
+      hint:"Five distinct inputs. One of these tests something the others don't.",
+      opts:[
+        {t:"A $412 invoice from a regular vendor", s:"A normal case."},
+        {t:"A $498.50 invoice from a new vendor", s:"Just under the approval threshold."},
+        {t:"An invoice where the amount field reads “TBD pending freight”", s:"No number at all."},
+        {t:"A $2,300 invoice with a long line-item list", s:"Well over the threshold, lots of text."}
+      ], a:2,
+      why:"<p><strong>The one with no number.</strong> Your routing rule compares an amount to 500. Handed the text <span class=\"mono\">TBD pending freight</span>, the comparison doesn't fail loudly — it quietly evaluates as false and the invoice routes as if it were under $500. It gets paid without approval, and nobody finds out until an audit.</p><p>This is the empty-or-partial category, and it's the most valuable of the five because failures here are silent. The $498.50 invoice is your boundary case and worth running too. The long invoice tests length. The normal one proves the flow runs.</p>",
+      trapIdx:1, trapWhy:"The boundary case is a genuinely good test and a reasonable answer — it's just not the dangerous one. A boundary failure is visible. A missing-field failure routes silently and gets paid." },
+    { n:"Decision 4 · The to-be shape", q:"What should the redesigned process look like?",
+      hint:"Delete what's dead, automate what's rule-based, keep the human where judgment lives.",
+      opts:[
+        {t:"Automate everything including approval; flag anything unusual for review afterward", s:"Fastest possible throughput."},
+        {t:"Automate capture, entry and routing. Under $500 posts automatically; over $500 goes to the manager with a summary. Binder deleted.", s:"Machine does the clerical work, manager decides."},
+        {t:"Keep the process, but have AI draft the approval email for the clerk", s:"A lighter-touch improvement."},
+        {t:"Automate capture and entry only; leave routing and approval as they are", s:"The safest change."}
+      ], a:1,
+      why:"<p><strong>Automate around the judgment.</strong> Capture, entry and routing are rule-based and repetitive. Approval over $500 stays with the manager, who now receives a summary instead of a raw PDF — so their attention goes entirely to the decision. The binder is gone.</p><p>Option 1 approves first and reviews later, which is not approval. Option 3 automates the least valuable step and leaves every wait in place. Option 4 is genuinely safe and leaves the routing rule — pure arithmetic — sitting on a person's desk.</p>",
+      trapIdx:2, trapWhy:"Drafting the email is the kind of improvement that demos well and changes nothing. It touches no wait state and removes no re-typing." }
+  ]
+},
+{
+  id:"northgate", kick:"Case 03 · Healthcare",
+  title:"A referral sits in a scanned folder for a week",
+  org:"Northgate Family Clinic · 4 physicians · referral intake",
+  ctx:"Referrals arrive by fax and through a partner portal. Front-desk staff process them between patients. A referral that sits too long is a patient who goes untreated — and sometimes one who goes elsewhere.",
+  map:[
+    ["1","Referral arrives by fax or portal","Referring office","—","Fax / portal"],
+    ["2","Front desk prints it","Front desk","—","Paper"],
+    ["3","Scans it into a shared folder","Front desk","1–2 days","Shared drive"],
+    ["4","Staff reads it, types patient details","Intake staff","—","Practice system"],
+    ["5","Checks insurance eligibility","Intake staff","—","Payer portal"],
+    ["6","Assigns to the right specialist","Intake staff","—","Judgment"],
+    ["7","Calls the patient to schedule","Intake staff","3–5 days","Phone"]
+  ],
+  waits:[2,6],
+  note:"Print-then-scan converts a digital document to paper and back. Nobody designed this; it accumulated.",
+  decisions:[
+    { n:"Decision 1 · The boundary", q:"Which step requires clinical judgment?",
+      hint:"Two of these look like decisions. Only one needs a person.",
+      opts:[
+        {t:"Step 4 — typing patient details", s:"Accuracy matters enormously here."},
+        {t:"Step 5 — checking insurance eligibility", s:"Determines whether care is covered."},
+        {t:"Step 6 — assigning to the right specialist", s:"Matches a patient to a clinician."},
+        {t:"Step 7 — calling to schedule", s:"Direct patient contact."}
+      ], a:2,
+      why:"<p><strong>Step 6.</strong> Matching a referral to the right specialist weighs the clinical question against who has the relevant sub-specialty, who has capacity, and how urgent this looks — judgment drawing on context no system holds.</p><p>Step 5 is the interesting distractor. Eligibility feels weighty because the stakes are high, but the answer is a lookup: given a plan number and a service code, the payer returns a definite answer. High stakes and human judgment are not the same thing.</p><p>Step 4 is extraction. Step 7 is executing a decision already made.</p>",
+      trapIdx:1, trapWhy:"Eligibility gets picked because it's consequential. But consequence isn't judgment — the question is whether the answer is derivable from available data. Here it is, from an authoritative source." },
+    { n:"Decision 2 · Where AI does not belong", q:"Which of these is a poor use of AI in this process?",
+      hint:"If a formula or a lookup could do it reliably, AI is the wrong tool.",
+      opts:[
+        {t:"Summarize the referral letter into two lines for the intake queue", s:"Condensing clinical prose."},
+        {t:"Extract patient name, DOB, and referring provider into structured fields", s:"Pulling fields from unstructured text."},
+        {t:"Determine insurance eligibility from the plan number", s:"Deciding whether the visit is covered."},
+        {t:"Flag referrals whose language suggests urgency, for a human to triage first", s:"Surfacing possible priority cases."}
+      ], a:2,
+      why:"<p><strong>Eligibility.</strong> There is one correct answer and an authoritative source that will give it to you. Asking a model to infer it produces a confident guess that is sometimes wrong, cannot be audited, and is wrong in a way that costs a patient money.</p><p>The other three are language and ambiguity — exactly where models earn their place. Note that option 4 is careful in a way that matters: it <em>flags for a human to triage</em>. It does not decide urgency.</p>",
+      trapIdx:3, trapWhy:"Flagging urgency looks risky in a clinical setting, and the instinct is right to be cautious. But it routes to a person rather than acting — which is what makes it acceptable. An AI step that decided urgency and acted on it would not be." },
+    { n:"Decision 3 · The prompt", q:"What does this prompt need that a retail example wouldn't?",
+      hint:"Think about what a model does when a referral is missing information.",
+      opts:[
+        {t:"A longer role description establishing medical expertise", s:"Signals the domain."},
+        {t:"An explicit instruction not to infer missing clinical details, and a fallback that names what is missing", s:"Constrains what happens on incomplete input."},
+        {t:"A request to be thorough and consider all possibilities", s:"Encourages careful reasoning."},
+        {t:"A higher word limit so nothing gets lost", s:"Preserves detail."}
+      ], a:1,
+      why:"<p><strong>An instruction not to infer, and a fallback that names the gap.</strong> A referral arrives with a blank diagnosis field. Without constraint, a model produces something plausible — that is what it does. In a clinic, a plausible invented diagnosis in an intake summary is a genuine safety problem.</p><p>The right output is <span class=\"mono\">MISSING: diagnosis</span> — which is also more useful operationally, because the staff now know exactly what to call the referring office about.</p><p>Options 1 and 3 add words without constraining the output. Option 4 makes the failure longer.</p>",
+      trapIdx:0, trapWhy:"Establishing medical expertise in the role line feels responsible in a clinical context. It constrains nothing — a model told it is a physician invents missing details just as readily, and slightly more convincingly." },
+    { n:"Decision 4 · The guardrail", q:"You're building this for Mini-Project 2. What data do you use?",
+      hint:"This one is a course rule, and it's the same rule your employer has.",
+      opts:[
+        {t:"Real referrals with names removed", s:"Realistic, and the identifiers are stripped."},
+        {t:"Invented referrals that match the real shape — fields, formats, and edge cases", s:"Nothing real enters the system."},
+        {t:"Real referrals, since the scenario is private to your account", s:"Only you can see it."},
+        {t:"A mix — real ones for testing, invented ones for the video", s:"Realistic testing, safe demonstration."}
+      ], a:1,
+      why:"<p><strong>Invented data matching the real shape.</strong> Reproduce the fields, the formats, and especially the edge cases — the blank diagnosis, the two-page letter, the name with an apostrophe. You get a genuine test without ever putting patient information into a third-party tool.</p><p>Removing names is not de-identification. A referral carries dates, a referring provider, a condition and a location; together those re-identify a person readily. And a Make scenario is not private in the relevant sense — the data passes through a third-party platform and sits in run history.</p>",
+      trapIdx:0, trapWhy:"“I removed the names” is the single most common misunderstanding of de-identification. The combination of remaining fields is usually enough to identify someone." }
+  ]
+},
+{
+  id:"vantage", kick:"Case 04 · Corporate",
+  title:"The weekly report four people read",
+  org:"Vantage Logistics · 900 employees · IT support desk",
+  ctx:"Tier-1 support handles about 400 tickets a week. The team is measured on first-response time. A weekly summary report goes to a distribution list of 40 managers.",
+  map:[
+    ["1","Ticket submitted through the portal","Employee","—","Ticket system"],
+    ["2","Ticket sits in the unassigned queue","—","4–9 hours","Ticket system"],
+    ["3","Tier-1 reads and categorizes it","Tier-1 agent","—","Ticket system"],
+    ["4","Searches the knowledge base","Tier-1 agent","—","Confluence"],
+    ["5","Decides: known fix, or a real bug","Tier-1 agent","—","Judgment"],
+    ["6","Answers or routes to engineering","Tier-1 agent","—","Ticket system"],
+    ["7","Tags the ticket for reporting","Tier-1 agent","—","Ticket system"],
+    ["8","Weekly report emailed to 40 managers","Team lead","—","Email"]
+  ],
+  waits:[1],
+  note:"Open-rate data on the weekly report: 4 of 40 recipients opened the last six issues.",
+  decisions:[
+    { n:"Decision 1 · Delete first", q:"Which step should be deleted before anyone automates anything?",
+      hint:"The note under the map is doing real work here.",
+      opts:[
+        {t:"Step 2 — the unassigned queue", s:"It's the longest delay in the process."},
+        {t:"Step 4 — searching the knowledge base", s:"AI could answer without it."},
+        {t:"Step 7 — tagging for reporting", s:"Administrative overhead on every ticket."},
+        {t:"Step 8 — the weekly report to 40 managers", s:"Four of forty recipients open it."}
+      ], a:3,
+      why:"<p><strong>The report.</strong> Thirty-six people receive it and don't read it. Automating its production is the textbook expensive mistake — you'd save the team lead an hour a week and permanently entrench something with a 10% readership.</p><p>The right move is to ask the four who do read it what decision they're making, and build them something smaller.</p><p>Step 2 is a wait to eliminate, not a step to delete. Step 7 exists <em>because</em> of step 8 — kill the report and re-ask whether the tagging still earns its place. That cascade is why you delete before you automate.</p>",
+      trapIdx:2, trapWhy:"Tagging is a fair answer and it's downstream of the real one. Delete the report first, then ask what the tags were for — you may find the answer is nothing." },
+    { n:"Decision 2 · The boundary", q:"Which step needs the human?",
+      hint:"Three of these are pattern-matching. One requires knowing things that aren't in the ticket.",
+      opts:[
+        {t:"Step 3 — categorizing the ticket", s:"Sorting into known categories."},
+        {t:"Step 4 — searching the knowledge base", s:"Finding the relevant article."},
+        {t:"Step 5 — deciding known fix versus real bug", s:"Distinguishing user error from a defect."},
+        {t:"Step 6 — answering or routing", s:"Taking the action."}
+      ], a:2,
+      why:"<p><strong>Step 5.</strong> Telling a known issue from a new defect requires knowing what shipped last Tuesday, which customers are on the old version, and whether three similar tickets came in this morning. None of that is in the ticket.</p><p>Categorizing is classification into named buckets — a model does that well. Knowledge-base search is retrieval. Step 6 executes the decision made at step 5.</p><p>Notice the pattern across all four cases: the judgment step is the one that needs information from <em>outside</em> the document in front of you.</p>",
+      trapIdx:0, trapWhy:"Categorization gets picked because it involves interpretation. But choosing among named categories from the text in front of you is precisely what a constrained classification prompt does reliably." },
+    { n:"Decision 3 · The trigger", q:"The ticket system supports webhooks. What should start the scenario?",
+      hint:"The team is measured on first-response time, and step 2 is a 4-to-9-hour wait.",
+      opts:[
+        {t:"Polling every 15 minutes for new tickets", s:"The usual default."},
+        {t:"Instant webhook when a ticket is created", s:"Fires immediately on submission."},
+        {t:"Scheduled at the start of each shift", s:"Batches the work sensibly."},
+        {t:"Manual, run by the team lead", s:"Keeps a person in control."}
+      ], a:1,
+      why:"<p><strong>Instant webhook.</strong> This is the case where it's worth the extra setup. The metric is first-response time and the bottleneck is a ticket sitting unassigned for hours — a webhook can acknowledge and categorize within seconds of submission.</p><p>Polling would work and adds up to fifteen minutes to every response for no benefit. Shift-batching makes the queue wait worse. This is why trigger choice is a design decision rather than a default: the same options, ranked differently, because the process cares about latency and Riverside's didn't.</p>",
+      trapIdx:0, trapWhy:"Polling is the right default and this is the case that breaks it. When the metric you're judged on is latency and the source supports webhooks, the default is the wrong answer." },
+    { n:"Decision 4 · The test set", q:"Which set of five inputs is an actual test?",
+      hint:"Distinct is the operative word.",
+      opts:[
+        {t:"Five recent password-reset tickets", s:"The most common ticket type by far."},
+        {t:"Five tickets from five different departments", s:"Covers the organization."},
+        {t:"A normal ticket, a 900-word one, one with an empty description, one in Spanish, and one at the exact routing threshold", s:"Five different kinds of stress."},
+        {t:"The same ticket run five times", s:"Confirms consistency."}
+      ], a:2,
+      why:"<p><strong>The third.</strong> Five categories, not five samples: normal, long, empty, odd, boundary. Each one breaks something different — length limits, the fallback instruction, character handling, the edge of your rule.</p><p>Five password resets test one path five times. Five departments look varied and are all normal-shaped tickets. Five identical runs prove your scenario is deterministic, which you already knew.</p><p>This is what the syllabus means by five <em>distinct</em> inputs, and it's the requirement most commonly satisfied in form rather than substance.</p>",
+      trapIdx:1, trapWhy:"Five departments feels like real variety and it's the most common way students meet the requirement without meeting its purpose. Different sources, same shape — none of them stress the flow." }
+  ]
+}
+];
+
+const state = {answers:{}, order:[]};
+const TOTAL = CASES.reduce((n,c)=>n+c.decisions.length,0);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function buildRail(){
+  document.getElementById("rail").innerHTML =
+    CASES.map(c=>`<div class="rail-grp"><a class="rail-name" href="#c-${c.id}" style="color:inherit;text-decoration:none">${esc(c.kick.split(" · ")[1])}</a>
+      <div class="pips">${c.decisions.map((_,i)=>`<div class="pip" id="pip-${c.id}-${i}"></div>`).join("")}</div></div>`).join("")
+    + `<div class="rail-score" id="railScore">0 of ${TOTAL} decided</div>`;
+}
+
+function buildCases(){
+  document.getElementById("cases").innerHTML = CASES.map(c=>`
+  <section class="case" id="c-${c.id}">
+    <div class="case-head">
+      <div class="case-kick">${esc(c.kick)}</div>
+      <h2>${esc(c.title)}</h2>
+      <p class="org">${esc(c.org)}</p>
+    </div>
+    <div class="case-body">
+      <aside class="dossier">
+        <h3>As-is process map</h3>
+        <div class="ctx">${esc(c.ctx)}</div>
+        <div style="overflow-x:auto">
+        <table class="maptable">
+          <thead><tr><th></th><th>Step</th><th>Who</th><th>Wait</th><th>System</th></tr></thead>
+          <tbody>${c.map.map((r,i)=>`<tr class="${c.waits.includes(i)?"waits":""}">
+            <td class="n">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td>
+            <td class="w">${esc(r[3])}</td><td>${esc(r[4])}</td></tr>`).join("")}</tbody>
+        </table></div>
+        <div class="note">${esc(c.note)}</div>
+      </aside>
+      <div class="decks">
+        ${c.decisions.map((d,i)=>`
+        <div class="dec" id="d-${c.id}-${i}">
+          <div class="dec-n">${esc(d.n)}</div>
+          <h4>${esc(d.q)}</h4>
+          <p class="hint">${esc(d.hint)}</p>
+          <div class="opts" role="group" aria-label="${esc(d.q)}">
+            ${d.opts.map((o,j)=>`<button class="opt" data-c="${c.id}" data-d="${i}" data-o="${j}">
+              <span class="box" aria-hidden="true">${String.fromCharCode(65+j)}</span>
+              <span class="txt">${esc(o.t)}<em>${esc(o.s)}</em></span></button>`).join("")}
+          </div>
+          <div class="acts"><button class="go" data-check="${c.id}-${i}" disabled>Check answer</button></div>
+          <div class="vwrap"></div>
+        </div>`).join("")}
+      </div>
+    </div>
+  </section>`).join("");
+}
+
+function key(c,i){return c+"-"+i}
+
+document.addEventListener("click", e=>{
+  const opt = e.target.closest(".opt");
+  if(opt && !opt.disabled){
+    const {c,d,o} = opt.dataset, k = key(c,d);
+    if(state.answers[k] && state.answers[k].locked) return;
+    const box = document.getElementById(`d-${c}-${d}`);
+    box.querySelectorAll(".opt").forEach(b=>b.classList.remove("sel"));
+    opt.classList.add("sel");
+    state.answers[k] = {picked:+o, locked:false};
+    box.querySelector("[data-check]").disabled = false;
+    return;
+  }
+  const chk = e.target.closest("[data-check]");
+  if(chk) reveal(chk.dataset.check);
+});
+
+var reveal = function(k){
+  const [cid, di] = [k.slice(0,k.lastIndexOf("-")), +k.slice(k.lastIndexOf("-")+1)];
+  const c = CASES.find(x=>x.id===cid), d = c.decisions[di];
+  const rec = state.answers[k]; if(!rec || rec.locked) return;
+  rec.locked = true; rec.correct = rec.picked === d.a;
+  if(!state.order.includes(k)) state.order.push(k);
+
+  const box = document.getElementById(`d-${cid}-${di}`);
+  box.querySelectorAll(".opt").forEach((b,j)=>{
+    b.disabled = true; b.classList.remove("sel");
+    if(j===d.a) b.classList.add("right");
+    else if(j===rec.picked) b.classList.add("wrong");
+  });
+  box.querySelector("[data-check]").remove();
+
+  const hitTrap = !rec.correct && rec.picked === d.trapIdx;
+  rec.trap = hitTrap;
+  box.querySelector(".vwrap").innerHTML =
+    `<div class="verdict ${rec.correct?"ok":"no"}">
+       <div class="tag">${rec.correct?"Correct":"Not quite — and this is the useful part"}</div>
+       ${d.why}
+       ${hitTrap?`<p style="border-top:1px solid var(--rule);padding-top:9px;margin-top:11px"><strong>About the answer you chose.</strong> ${d.trapWhy}</p>`:""}
+     </div>`;
+  update();
+}
+
+function update(){
+  let made=0, right=0, traps=0, done=0;
+  CASES.forEach(c=>{
+    let cdone=0;
+    c.decisions.forEach((_,i)=>{
+      const r = state.answers[key(c.id,i)], pip = document.getElementById(`pip-${c.id}-${i}`);
+      if(r && r.locked){ made++; cdone++; if(r.correct){right++; pip.className="pip done";} else {pip.className="pip miss"; if(r.trap) traps++;} }
+      else if(r){ pip.className="pip here"; }
+    });
+    if(cdone===c.decisions.length) done++;
+  });
+  document.getElementById("tMade").innerHTML = made+'<span style="font-size:15px;color:var(--ink-3)">/'+TOTAL+'</span>';
+  document.getElementById("tRight").textContent = right;
+  document.getElementById("tTrap").textContent = traps;
+  document.getElementById("tCase").innerHTML = done+'<span style="font-size:15px;color:var(--ink-3)">/4</span>';
+  document.getElementById("railScore").textContent = made+" of "+TOTAL+" decided";
+}
+
+buildRail(); buildCases(); update();
+
+/* ---------- download + local save ---------- */
+
+function ghDownload(filename, text){
+  try{
+    const blob = new Blob([text], {type:"text/markdown;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.style.display = "none";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 1500);
+    return true;
+  }catch(e){ return false; }
+}
+function ghStore(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+function ghLoad(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+function asText(){
+  const name = document.getElementById("who").value.trim() || "(no name)";
+  const sect = document.getElementById("sect").value || "(no section)";
+  let out = "INAI 5100 - The Automation Casebook\nName: "+name+"    Section: "+sect+"\n";
+  let made=0, right=0;
+  CASES.forEach(c=>{
+    out += "\n"+c.kick+" - "+c.title+"\n";
+    c.decisions.forEach((d,i)=>{
+      const r = state.answers[key(c.id,i)];
+      if(r&&r.locked){ made++; if(r.correct) right++; }
+      out += "  "+d.n+"\n  Q: "+d.q+"\n  You chose: "+
+        (r&&r.locked ? d.opts[r.picked].t+(r.correct?"  [correct]":"  [not the answer]") : "(not answered)")+"\n";
+      if(r&&r.locked&&!r.correct) out += "  Correct: "+d.opts[d.a].t+"\n";
+    });
+  });
+  out += "\nSCORE: "+right+" first-try correct out of "+made+" decisions made\n";
+  out += "\nREFLECTION - your own process\n"+(document.getElementById("r1").value.trim()||"(not written)");
+  out += "\n\nREFLECTION - the one you would delete\n"+(document.getElementById("r2").value.trim()||"(not written)")+"\n";
+  return out;
+}
+document.getElementById("dlBtn").addEventListener("click", ()=>{
+  const msg = document.getElementById("submitMsg"); msg.className=""; msg.textContent="";
+  const name = document.getElementById("who").value.trim();
+  const sect = document.getElementById("sect").value;
+  if(!name){ msg.className="bad"; msg.textContent="Add your name at the top of the page first."; document.getElementById("who").focus(); return; }
+  if(!sect){ msg.className="bad"; msg.textContent="Choose your section at the top of the page."; document.getElementById("sect").focus(); return; }
+  const made = Object.values(state.answers).filter(a=>a.locked).length;
+  if(made === 0){ msg.className="bad"; msg.textContent="Work through at least one case before downloading."; return; }
+  const safe = name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"") || "casebook";
+  if(ghDownload("casebook-"+safe+".md", asText())){
+    msg.className="good"; msg.textContent="Downloaded. Upload that file to the Canvas assignment.";
+  }else{
+    msg.className="bad"; msg.textContent="Your browser blocked the download. Select the page text and copy it into a document instead.";
+  }
+});
+
+/* remember answers and text on this device */
+const SK = "inai5100-casebook";
+function persist(){
+  ghStore(SK, JSON.stringify({
+    answers: state.answers,
+    who: document.getElementById("who").value,
+    sect: document.getElementById("sect").value,
+    r1: document.getElementById("r1").value,
+    r2: document.getElementById("r2").value
+  }));
+}
+(function restore(){
+  const raw = ghLoad(SK); if(!raw) return;
+  let d; try{ d = JSON.parse(raw); }catch(e){ return; }
+  if(d.who) document.getElementById("who").value = d.who;
+  if(d.sect) document.getElementById("sect").value = d.sect;
+  if(d.r1) document.getElementById("r1").value = d.r1;
+  if(d.r2) document.getElementById("r2").value = d.r2;
+  if(d.answers) Object.keys(d.answers).forEach(k=>{
+    const rec = d.answers[k]; if(!rec || !rec.locked) return;
+    state.answers[k] = {picked: rec.picked, locked: false};
+    reveal(k);
+  });
+})();
+["who","sect","r1","r2"].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener("input", persist); el.addEventListener("change", persist);
+});
+const _reveal = reveal;
+reveal = function(k){ _reveal(k); persist(); };
+</script>
+
+</body>
+</html>

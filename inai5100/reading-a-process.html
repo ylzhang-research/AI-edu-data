@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="INAI 5100 Weeks 4-5 orientation: as-is process maps, the delete-simplify-automate order, and where the machine stops.">
+<title>Reading a Process</title>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+
+:root{
+  --ink:#16202B; --ink-2:#3D4E5C; --ink-3:#6B7F8D;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EFF1;
+  --rule:#D3DDE2; --rule-strong:#B4C3CB;
+  --accent:#0F6E6E; --accent-2:#0B5555; --accent-soft:#E0EFEE;
+  --keep:#9C5A00; --keep-soft:#FBEEDC;
+  --auto:#2C6349; --auto-soft:#E2EFE8;
+  --stop:#9B2C2C; --stop-soft:#F8E7E7;
+  --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px -12px rgba(22,32,43,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+    --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+    --rule:#2A3742; --rule-strong:#3B4B58;
+    --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+    --keep:#D89A4A; --keep-soft:#31251A;
+    --auto:#68B08C; --auto-soft:#16281F;
+    --stop:#DE8585; --stop-soft:#301A1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+  --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+  --rule:#2A3742; --rule-strong:#3B4B58;
+  --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+  --keep:#D89A4A; --keep-soft:#31251A;
+  --auto:#68B08C; --auto-soft:#16281F;
+  --stop:#DE8585; --stop-soft:#301A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast-in{max-width:1200px;margin:0 auto;padding:22px 24px 20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-size:29px;line-height:1.14;margin:0;font-weight:600;letter-spacing:-.017em;text-wrap:balance}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:15px;max-width:60ch}
+.idbox{display:flex;flex-direction:column;gap:5px;min-width:214px}
+.idbox label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.idrow{display:flex;gap:8px}
+input[type=text],select{
+  font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);
+  color:var(--ink);min-width:0;width:100%}
+input[type=text]:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---------- progress rail ---------- */
+.rail{background:var(--surface-2);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40}
+.rail-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;gap:26px;
+  align-items:center;overflow-x:auto}
+.rail-grp{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.rail-name{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pip{width:22px;height:6px;border-radius:1px;background:var(--rule-strong);transition:background .18s}
+.pip.done{background:var(--auto)}
+.pip.miss{background:var(--stop)}
+.pip.here{background:var(--accent)}
+.rail-score{margin-left:auto;flex:0 0 auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;margin:26px 0 0;box-shadow:var(--shadow)}
+.intro h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15px;max-width:74ch}
+.intro p:last-child{margin-bottom:0}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.howto div{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.howto b{display:block;font-size:13.5px;margin-bottom:2px}
+.howto span{font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- case ---------- */
+.case{margin-top:34px;scroll-margin-top:64px}
+.case-head{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:18px}
+.case-kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.case-head h2{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.case-head .org{margin:4px 0 0;color:var(--ink-3);font-size:14px;
+  font-family:"IBM Plex Mono",monospace}
+.case-body{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:920px){.case-body{grid-template-columns:1fr}}
+
+/* dossier */
+.dossier{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:921px){.dossier{position:sticky;top:60px}}
+.dossier h3{margin:0;padding:12px 16px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.dossier .ctx{padding:14px 16px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.maptable{width:100%;border-collapse:collapse;font-size:13px}
+.maptable th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 10px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.maptable td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.maptable tr:last-child td{border-bottom:none}
+.maptable td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;width:26px}
+.maptable td.w{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;font-size:12px}
+.maptable tr.waits{background:var(--keep-soft)}
+.maptable tr.waits td.w{color:var(--keep);font-weight:600}
+.dossier .note{padding:12px 16px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--rule);
+  background:var(--surface-2)}
+
+/* decisions */
+.decks{display:flex;flex-direction:column;gap:16px}
+.dec{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:18px 20px;box-shadow:var(--shadow)}
+.dec.locked{opacity:.55}
+.dec-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dec h4{margin:5px 0 4px;font-size:17.5px;font-weight:600;letter-spacing:-.01em;line-height:1.32;text-wrap:balance}
+.dec .hint{margin:0 0 13px;font-size:14px;color:var(--ink-2)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:13px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;
+  font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);
+  border-radius:4px;margin-top:2px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* verdict */
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:13px 16px;border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{color:var(--ink);font-weight:600}
+
+/* ---------- summary ---------- */
+.summary{margin-top:44px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:8px;padding:26px;box-shadow:var(--shadow)}
+.summary h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.summary .lede{margin:0 0 20px;color:var(--ink-2);font-size:15px;max-width:70ch}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.reflect{margin-bottom:20px}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;
+  padding:11px 12px;border:1px solid var(--rule-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);resize:vertical;min-height:92px}
+textarea:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#submitMsg{margin-top:12px;font-size:14.5px}
+#submitMsg.good{color:var(--auto);font-weight:600}
+#submitMsg.bad{color:var(--stop)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+</style>
+<style>
+.hero{max-width:1200px;margin:0 auto;padding:44px 24px 34px}
+.hero .eyebrow{margin-bottom:10px}
+.hero h1{font-size:40px;letter-spacing:-.025em;max-width:20ch}
+.hero .lede{margin:14px 0 0;font-size:18px;line-height:1.5;color:var(--ink-2);max-width:62ch}
+.spine{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin:30px 0 0}
+@media (max-width:760px){.spine{grid-template-columns:1fr}}
+.spine div{background:var(--surface);padding:18px 20px}
+.spine .step{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;color:var(--accent)}
+.spine h3{margin:6px 0 5px;font-size:19px;font-weight:600;letter-spacing:-.012em}
+.spine p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.spine .ans{margin-top:9px;font-size:13.5px;color:var(--ink-3);font-style:italic}
+section.blk{margin-top:44px;scroll-margin-top:20px}
+section.blk > h2{margin:0 0 6px;font-size:25px;font-weight:600;letter-spacing:-.018em;
+  border-top:2px solid var(--ink);padding-top:14px}
+section.blk > .say{margin:0 0 20px;font-size:16px;color:var(--ink-2);max-width:70ch}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:16px}
+.col{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;
+  box-shadow:var(--shadow)}
+.col .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;font-weight:600;color:var(--accent)}
+.col h4{margin:5px 0 5px;font-size:17px;font-weight:600}
+.col p{margin:0;font-size:14px;color:var(--ink-2)}
+.sortgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:760px){.sortgrid{grid-template-columns:1fr}}
+.sortcard{border-radius:8px;padding:16px 18px;border:1px solid}
+.sortcard.s1{background:var(--stop-soft);border-color:var(--stop)}
+.sortcard.s2{background:var(--keep-soft);border-color:var(--keep)}
+.sortcard.s3{background:var(--auto-soft);border-color:var(--auto)}
+.sortcard .n{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:600;line-height:1}
+.sortcard.s1 .n{color:var(--stop)} .sortcard.s2 .n{color:var(--keep)} .sortcard.s3 .n{color:var(--auto)}
+.sortcard h4{margin:7px 0 5px;font-size:18px;font-weight:600}
+.sortcard p{margin:0;font-size:14px;color:var(--ink-2)}
+.sortcard .test{margin-top:9px;font-size:13px;font-style:italic;color:var(--ink-3)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.split{grid-template-columns:1fr}}
+.pull{border-left:3px solid var(--accent);padding:4px 0 4px 16px;margin:22px 0 0;
+  font-size:18px;line-height:1.45;max-width:66ch}
+.demomap{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow);margin-top:8px}
+.demomap .cap{padding:11px 16px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  font-size:13px;color:var(--ink-2)}
+.cta{margin-top:46px;background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:28px;box-shadow:var(--shadow);display:flex;gap:22px;align-items:center;
+  justify-content:space-between;flex-wrap:wrap}
+.cta h2{margin:0 0 5px;font-size:23px;font-weight:600;letter-spacing:-.015em}
+.cta p{margin:0;color:var(--ink-2);font-size:15px;max-width:52ch}
+a.gobtn{display:inline-block;font-size:15px;font-weight:600;padding:13px 24px;border-radius:6px;
+  background:var(--accent);color:#fff;text-decoration:none;border:1px solid var(--accent);white-space:nowrap}
+:root[data-theme="dark"] a.gobtn{color:#0E151B}
+a.gobtn:hover{background:var(--accent-2);border-color:var(--accent-2)}
+a.gobtn.alt{background:transparent;color:var(--accent);border-color:var(--rule-strong)}
+a.gobtn.alt:hover{background:var(--accent-soft);border-color:var(--accent)}
+.nav{display:flex;gap:9px;flex-wrap:wrap}
+.checkline{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--rule)}
+.checkline:last-child{border-bottom:none}
+.checkline .mk{flex:0 0 auto;width:20px;height:20px;border-radius:5px;background:var(--accent-soft);
+  color:var(--accent);display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;
+  font-size:11px;font-weight:600;margin-top:1px}
+.checkline div{font-size:15px}
+.checkline b{display:block;font-weight:600}
+.checkline span{color:var(--ink-2);font-size:14px}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <p class="eyebrow">INAI 5100 · Weeks 4–5 · Map It, Then Build It</p>
+      <h1 style="font-size:25px">Start here</h1>
+    </div>
+    <div class="nav">
+      <a class="gobtn alt" href="./casebook.html">The Casebook →</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <p class="eyebrow">Part 1 · Orientation</p>
+  <h1>Reading a Process</h1>
+  <p class="lede">Anyone can be taught to click through a setup screen. The skill that lasts is knowing which process is worth automating — and which step inside it should stay human. This page gives you the vocabulary. The casebook is where you practice it.</p>
+</div>
+
+<div class="wrap">
+
+  <section class="blk" style="margin-top:8px">
+    <h2>Three questions, in this order</h2>
+    <p class="say">Week 3 ended with a rule: chain, then process, then tool. Here is what each layer actually asks.</p>
+    <div class="spine">
+      <div>
+        <div class="step">Layer 1 · The value chain</div>
+        <h3>Where should I look?</h3>
+        <p>A business is not one thing that makes money. It is a set of named activities, each with a cost and a contribution.</p>
+        <p class="ans">Gets you to the right neighborhood.</p>
+      </div>
+      <div>
+        <div class="step">Layer 2 · The process</div>
+        <h3>How does this actually run?</h3>
+        <p>One activity, opened up: input, process, output, feedback. Who does each step, and where does the work sit waiting?</p>
+        <p class="ans">Gets you to the right step.</p>
+      </div>
+      <div>
+        <div class="step">Layer 3 · The tool</div>
+        <h3>Can a machine do it?</h3>
+        <p>A scenario in Make. A trigger, some modules, a result. This is the layer everyone wants to start at.</p>
+        <p class="ans">Only useful once the first two are answered.</p>
+      </div>
+    </div>
+    <p class="pull">Skip a layer and you automate something nobody needed, faster. That is not a hypothetical — it is the most common way organizations waste money on automation.</p>
+  </section>
+
+  <section class="blk">
+    <h2>The as-is map</h2>
+    <p class="say">Before you improve anything, draw what actually happens — not what the policy says happens. Four columns, and no formal notation required.</p>
+    <div class="cols">
+      <div class="col"><div class="lbl">Column 1</div><h4>Step</h4><p>What happens, and who does it. One line each, in the order they really occur.</p></div>
+      <div class="col"><div class="lbl">Column 2</div><h4>Handoff</h4><p>Where it goes next, and to whom. Every handoff is a place work can stop.</p></div>
+      <div class="col"><div class="lbl">Column 3</div><h4>Wait</h4><p>How long it sits before anyone touches it. Be honest — use real times, not target times.</p></div>
+      <div class="col"><div class="lbl">Column 4</div><h4>System</h4><p>Where it lives. A form, a sheet, an inbox, a binder, or somebody's memory.</p></div>
+    </div>
+
+    <p class="pull" style="border-left-color:var(--keep)">Three rules make the difference between a map that teaches you something and a map that flatters you.</p>
+
+    <div style="background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:6px 20px;box-shadow:var(--shadow)">
+      <div class="checkline"><span class="mk">1</span><div><b>Draw it from memory first, then check it against reality.</b>
+        <span>You will be wrong. The gap between what you believe happens and what happens is the finding — usually a step nobody mentioned, an approval routinely skipped, or a spreadsheet somebody maintains privately.</span></div></div>
+      <div class="checkline"><span class="mk">2</span><div><b>Follow one real item end to end.</b>
+        <span>Not “how do invoices work,” but “what happened to invoice 4471.” Averages smooth out exactly the delays you are hunting for.</span></div></div>
+      <div class="checkline"><span class="mk">3</span><div><b>Mark every wait.</b>
+        <span>Waits are where the time goes, and they sit between people rather than inside them. Delay between two owners is nobody's problem, which is why it survives for years.</span></div></div>
+    </div>
+
+    <div class="demomap">
+      <div class="cap">Here is what one looks like finished. The shaded rows are waits — notice that they are the majority of the elapsed time and none of the work.</div>
+      <div style="overflow-x:auto">
+      <table class="maptable">
+        <thead><tr><th></th><th>Step</th><th>Who</th><th>Wait</th><th>System</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td>Vendor emails an invoice</td><td>Vendor</td><td class="w">—</td><td>Shared inbox</td></tr>
+          <tr><td class="n">2</td><td>Clerk saves it and types the details into a sheet</td><td>AP clerk</td><td class="w">—</td><td>Sheets</td></tr>
+          <tr class="waits"><td class="n">3</td><td>Sits in the manager's inbox</td><td>—</td><td class="w">2–4 days</td><td>Email</td></tr>
+          <tr><td class="n">4</td><td>Manager approves</td><td>Ops manager</td><td class="w">—</td><td>Judgment</td></tr>
+          <tr><td class="n">5</td><td>Clerk marks it paid</td><td>AP clerk</td><td class="w">—</td><td>Sheets</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2>Delete, then simplify, then automate</h2>
+    <p class="say">In that order, every time. The order is the whole lesson, because it is the one people reverse.</p>
+    <div class="sortgrid">
+      <div class="sortcard s1"><div class="n">1</div><h4>Delete</h4>
+        <p>The step exists because of an incident nobody remembers. Removing it costs nothing and saves everything downstream.</p>
+        <p class="test">Nothing breaks if we stop.</p></div>
+      <div class="sortcard s2"><div class="n">2</div><h4>Simplify</h4>
+        <p>Something breaks, but the step is bigger than the risk it manages. Shrink it before you build anything around it.</p>
+        <p class="test">Something breaks, but less than the step costs.</p></div>
+      <div class="sortcard s3"><div class="n">3</div><h4>Automate</h4>
+        <p>Something real breaks and the step is genuinely needed. Now it is worth building — and only now.</p>
+        <p class="test">Something real breaks.</p></div>
+    </div>
+    <p class="pull" style="border-left-color:var(--stop)">Automating a step you could have deleted is the most expensive option on the list. You have paid to preserve something you should have removed — and now it is fast, cheap, and permanent, so nobody will ever revisit it.</p>
+    <p style="font-size:16px;color:var(--ink-2);max-width:70ch;margin-top:16px">Ask of every step: <strong style="color:var(--ink)">what breaks if we stop doing this?</strong> The answers sort themselves into the three groups above, and the sort is most of the analysis.</p>
+  </section>
+
+  <section class="blk">
+    <h2>Where the machine stops</h2>
+    <p class="say">The design decision that separates a useful automation from an expensive one. Not every step a person performs is a step that requires one.</p>
+    <div class="split">
+      <div class="col" style="border-color:var(--auto);background:var(--auto-soft)">
+        <div class="lbl" style="color:var(--auto)">Give it to the machine</div>
+        <h4 style="margin-bottom:9px">When all of this is true</h4>
+        <div class="checkline" style="border-color:rgba(0,0,0,.08)"><span class="mk" style="background:var(--surface);color:var(--auto)">✓</span><div><span>The answer is always derivable from the data</span></div></div>
+        <div class="checkline" style="border-color:rgba(0,0,0,.08)"><span class="mk" style="background:var(--surface);color:var(--auto)">✓</span><div><span>The same input must give the same output</span></div></div>
+        <div class="checkline" style="border-color:rgba(0,0,0,.08)"><span class="mk" style="background:var(--surface);color:var(--auto)">✓</span><div><span>It happens often enough to be worth building</span></div></div>
+        <div class="checkline"><span class="mk" style="background:var(--surface);color:var(--auto)">✓</span><div><span>A mistake is visible and cheap to reverse</span></div></div>
+      </div>
+      <div class="col" style="border-color:var(--keep);background:var(--keep-soft)">
+        <div class="lbl" style="color:var(--keep)">Keep the human</div>
+        <h4 style="margin-bottom:9px">When any of this is true</h4>
+        <div class="checkline" style="border-color:rgba(0,0,0,.08)"><span class="mk" style="background:var(--surface);color:var(--keep)">!</span><div><span>It needs context the system does not hold</span></div></div>
+        <div class="checkline" style="border-color:rgba(0,0,0,.08)"><span class="mk" style="background:var(--surface);color:var(--keep)">!</span><div><span>The answer depends on judgment or relationship</span></div></div>
+        <div class="checkline" style="border-color:rgba(0,0,0,.08)"><span class="mk" style="background:var(--surface);color:var(--keep)">!</span><div><span>It is rare, and each case is genuinely different</span></div></div>
+        <div class="checkline"><span class="mk" style="background:var(--surface);color:var(--keep)">!</span><div><span>A mistake is expensive or hard to detect</span></div></div>
+      </div>
+    </div>
+    <p class="pull">Do not automate the judgment. Automate everything around it, so the person spends their attention only on the judgment. Nobody is replaced, and the work moves faster.</p>
+    <p style="font-size:15.5px;color:var(--ink-2);max-width:72ch;margin-top:16px">A loan reviewer's day is forty percent judgment and sixty percent clerical — pulling records, checking completeness, assembling summaries, routing by size, notifying the applicant. Automate that sixty percent and the same person handles twice the volume, doing only the part that needed them. That is the shape you are looking for in every case.</p>
+  </section>
+
+  <section class="blk">
+    <h2>Two traps to watch for</h2>
+    <p class="say">Both of these will show up in the casebook, and both catch people who understand the framework perfectly well.</p>
+    <div class="split">
+      <div class="col">
+        <div class="lbl" style="color:var(--stop)">Trap 1</div>
+        <h4>High stakes is not the same as human judgment</h4>
+        <p>A consequential step feels like it needs a person. But the real question is narrower: is the answer derivable from available data? Insurance eligibility matters enormously and is still a lookup with one correct answer.</p>
+      </div>
+      <div class="col">
+        <div class="lbl" style="color:var(--stop)">Trap 2</div>
+        <h4>A step involving a person is not always a step requiring one</h4>
+        <p>“Route to the manager if it's over $500” is arithmetic wearing the costume of a decision. If the rule is written down, it belongs to the machine — no matter who currently performs it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div>
+      <h2>Now open the casebook</h2>
+      <p>Four processes across a nonprofit, a small business, a clinic, and a corporate support desk. Sixteen decisions. Bring one process from your own organization to compare against.</p>
+    </div>
+    <div class="nav">
+      <a class="gobtn" href="./casebook.html">Open the Casebook →</a>
+      <a class="gobtn alt" href="./build-bench.html">Part 2: The Build Bench</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>INAI 5100 · AI in Business Operations · Dr. Lucy Zhang</span>
+    <span class="mono">Part 1 of 3 · Orientation</span>
+  </footer>
+</div>
+
+
+</body>
+</html>

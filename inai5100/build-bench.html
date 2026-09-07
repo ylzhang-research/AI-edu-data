@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Four working tools for building a Make scenario: trigger selector, operations budget, prompt builder, and test planner.">
+<title>The Build Bench</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+
+:root{
+  --ink:#16202B; --ink-2:#3D4E5C; --ink-3:#6B7F8D;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EFF1;
+  --rule:#D3DDE2; --rule-strong:#B4C3CB;
+  --accent:#0F6E6E; --accent-2:#0B5555; --accent-soft:#E0EFEE;
+  --keep:#9C5A00; --keep-soft:#FBEEDC;
+  --auto:#2C6349; --auto-soft:#E2EFE8;
+  --stop:#9B2C2C; --stop-soft:#F8E7E7;
+  --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px -12px rgba(22,32,43,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+    --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+    --rule:#2A3742; --rule-strong:#3B4B58;
+    --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+    --keep:#D89A4A; --keep-soft:#31251A;
+    --auto:#68B08C; --auto-soft:#16281F;
+    --stop:#DE8585; --stop-soft:#301A1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+  --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+  --rule:#2A3742; --rule-strong:#3B4B58;
+  --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+  --keep:#D89A4A; --keep-soft:#31251A;
+  --auto:#68B08C; --auto-soft:#16281F;
+  --stop:#DE8585; --stop-soft:#301A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast-in{max-width:1200px;margin:0 auto;padding:22px 24px 20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-size:29px;line-height:1.14;margin:0;font-weight:600;letter-spacing:-.017em;text-wrap:balance}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:15px;max-width:60ch}
+.idbox{display:flex;flex-direction:column;gap:5px;min-width:214px}
+.idbox label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.idrow{display:flex;gap:8px}
+input[type=text],select{
+  font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);
+  color:var(--ink);min-width:0;width:100%}
+input[type=text]:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---------- progress rail ---------- */
+.rail{background:var(--surface-2);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40}
+.rail-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;gap:26px;
+  align-items:center;overflow-x:auto}
+.rail-grp{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.rail-name{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pip{width:22px;height:6px;border-radius:1px;background:var(--rule-strong);transition:background .18s}
+.pip.done{background:var(--auto)}
+.pip.miss{background:var(--stop)}
+.pip.here{background:var(--accent)}
+.rail-score{margin-left:auto;flex:0 0 auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;margin:26px 0 0;box-shadow:var(--shadow)}
+.intro h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15px;max-width:74ch}
+.intro p:last-child{margin-bottom:0}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.howto div{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.howto b{display:block;font-size:13.5px;margin-bottom:2px}
+.howto span{font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- case ---------- */
+.case{margin-top:34px;scroll-margin-top:64px}
+.case-head{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:18px}
+.case-kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.case-head h2{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.case-head .org{margin:4px 0 0;color:var(--ink-3);font-size:14px;
+  font-family:"IBM Plex Mono",monospace}
+.case-body{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:920px){.case-body{grid-template-columns:1fr}}
+
+/* dossier */
+.dossier{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:921px){.dossier{position:sticky;top:60px}}
+.dossier h3{margin:0;padding:12px 16px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.dossier .ctx{padding:14px 16px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.maptable{width:100%;border-collapse:collapse;font-size:13px}
+.maptable th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 10px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.maptable td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.maptable tr:last-child td{border-bottom:none}
+.maptable td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;width:26px}
+.maptable td.w{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;font-size:12px}
+.maptable tr.waits{background:var(--keep-soft)}
+.maptable tr.waits td.w{color:var(--keep);font-weight:600}
+.dossier .note{padding:12px 16px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--rule);
+  background:var(--surface-2)}
+
+/* decisions */
+.decks{display:flex;flex-direction:column;gap:16px}
+.dec{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:18px 20px;box-shadow:var(--shadow)}
+.dec.locked{opacity:.55}
+.dec-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dec h4{margin:5px 0 4px;font-size:17.5px;font-weight:600;letter-spacing:-.01em;line-height:1.32;text-wrap:balance}
+.dec .hint{margin:0 0 13px;font-size:14px;color:var(--ink-2)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:13px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;
+  font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);
+  border-radius:4px;margin-top:2px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* verdict */
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:13px 16px;border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{color:var(--ink);font-weight:600}
+
+/* ---------- summary ---------- */
+.summary{margin-top:44px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:8px;padding:26px;box-shadow:var(--shadow)}
+.summary h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.summary .lede{margin:0 0 20px;color:var(--ink-2);font-size:15px;max-width:70ch}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.reflect{margin-bottom:20px}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;
+  padding:11px 12px;border:1px solid var(--rule-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);resize:vertical;min-height:92px}
+textarea:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#submitMsg{margin-top:12px;font-size:14.5px}
+#submitMsg.good{color:var(--auto);font-weight:600}
+#submitMsg.bad{color:var(--stop)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+</style>
+<style>
+.hero{max-width:1200px;margin:0 auto;padding:40px 24px 26px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:19ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:64ch}
+.nav{display:flex;gap:9px;flex-wrap:wrap}
+a.gobtn{display:inline-block;font-size:14px;font-weight:600;padding:10px 18px;border-radius:6px;
+  background:var(--accent);color:#fff;text-decoration:none;border:1px solid var(--accent);white-space:nowrap}
+:root[data-theme="dark"] a.gobtn{color:#0E151B}
+a.gobtn.alt{background:transparent;color:var(--accent);border-color:var(--rule-strong)}
+a.gobtn.alt:hover{background:var(--accent-soft);border-color:var(--accent)}
+section.blk{margin-top:44px;scroll-margin-top:20px}
+section.blk > h2{margin:0 0 5px;font-size:25px;font-weight:600;letter-spacing:-.018em;
+  border-top:2px solid var(--ink);padding-top:14px}
+section.blk > .say{margin:0 0 18px;font-size:16px;color:var(--ink-2);max-width:72ch}
+.tool{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  box-shadow:var(--shadow);overflow:hidden}
+.tool > h3{margin:0;padding:13px 18px;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.tool .pad{padding:18px}
+.field{margin-bottom:15px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:14.5px;font-weight:600;margin-bottom:3px}
+.field .q{font-size:13.5px;color:var(--ink-3);margin-bottom:7px}
+.seg{display:flex;gap:7px;flex-wrap:wrap}
+.seg button{font:inherit;font-size:13.5px;padding:8px 13px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.seg button:hover{border-color:var(--ink-3)}
+.seg button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+:root[data-theme="dark"] .seg button[aria-pressed=true]{color:#0E151B}
+.outbox{margin-top:16px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:14px 16px;border-radius:0 6px 6px 0;font-size:14.5px;color:var(--ink-2)}
+.outbox strong{color:var(--ink)}
+.outbox .verd{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;color:var(--accent);margin-bottom:5px}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-top:14px}
+.calc div{background:var(--surface);padding:12px 14px}
+.calc .k{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.calc .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:2px}
+.calc .v.bad{color:var(--stop)} .calc .v.good{color:var(--auto)}
+.promptout{font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;
+  background:var(--surface-2);border:1px solid var(--rule);border-radius:6px;padding:14px 15px;
+  margin-top:6px;min-height:96px;color:var(--ink)}
+.promptout .ph{color:var(--ink-3);font-style:italic}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  font-weight:600;padding:5px 10px;border-radius:99px;border:1px solid var(--rule-strong);color:var(--ink-3)}
+.chip.on{background:var(--auto-soft);border-color:var(--auto);color:var(--auto)}
+.chip.off{background:var(--stop-soft);border-color:var(--stop);color:var(--stop)}
+.tests{display:flex;flex-direction:column;gap:10px}
+.trow{display:grid;grid-template-columns:132px 1fr;gap:12px;align-items:start}
+@media (max-width:660px){.trow{grid-template-columns:1fr}}
+.trow .tk{padding-top:9px}
+.trow .tname{font-size:14px;font-weight:600}
+.trow .twhat{font-size:12.5px;color:var(--ink-3);line-height:1.35}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:17px 19px;
+  box-shadow:var(--shadow)}
+.card .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;font-weight:600}
+.card h4{margin:5px 0 6px;font-size:17px;font-weight:600}
+.card ul{margin:0;padding-left:19px;font-size:14px;color:var(--ink-2)}
+.card ul li{margin-bottom:4px}
+.pull{border-left:3px solid var(--accent);padding:4px 0 4px 16px;margin:20px 0 0;
+  font-size:17.5px;line-height:1.45;max-width:68ch}
+.flow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:4px 0 16px}
+.flow .n{padding:9px 17px;border-radius:6px;background:var(--accent);color:#fff;font-weight:600;font-size:14.5px}
+:root[data-theme="dark"] .flow .n{color:#0E151B}
+.flow .n.ai{background:var(--auto)}
+.flow .ar{color:var(--ink-3);font-size:17px}
+.reqgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.req{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--rule);
+  border-radius:7px;padding:13px 15px}
+.req .mk{flex:0 0 auto;width:21px;height:21px;border-radius:5px;background:var(--accent-soft);color:var(--accent);
+  display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600}
+.req b{display:block;font-size:14.5px;font-weight:600}
+.req span{font-size:13.5px;color:var(--ink-2)}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 15px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#saveMsg{margin-top:11px;font-size:14.5px}
+#saveMsg.good{color:var(--auto);font-weight:600}
+#saveMsg.bad{color:var(--stop)}
+.idbox2{display:grid;grid-template-columns:1fr 160px;gap:10px;margin-bottom:16px}
+@media (max-width:560px){.idbox2{grid-template-columns:1fr}}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <p class="eyebrow">INAI 5100 · Weeks 4–5 · Map It, Then Build It</p>
+      <h1 style="font-size:25px">Part 2 · Build it</h1>
+    </div>
+    <div class="nav">
+      <a class="gobtn alt" href="./reading-a-process.html">← Start here</a>
+      <a class="gobtn alt" href="./casebook.html">The Casebook</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <p class="eyebrow">Part 2 · The mechanics</p>
+  <h1>The Build Bench</h1>
+  <p class="lede">You have a process and you know which step needs a person. Now build the thing. Four working tools below — use them on your own process, then carry the output straight into Mini-Project 2.</p>
+</div>
+
+<div class="wrap">
+
+  <section class="blk" style="margin-top:6px">
+    <h2>What a scenario is</h2>
+    <p class="say">Exactly one trigger, then actions. The trigger is always the first module; everything after it is something that happens as a result. That is the whole structure.</p>
+    <div class="flow">
+      <span class="n">Trigger</span><span class="ar">→</span>
+      <span class="n">Action</span><span class="ar">→</span>
+      <span class="n ai">AI step</span><span class="ar">→</span>
+      <span class="n">Action</span>
+    </div>
+    <p class="pull">This is input, process, output — the same diagram from Week 3, drawn in a different tool. What Make gives you for free is that it runs identically every time. What it does not give you is feedback: deciding what to learn from the output is still yours.</p>
+  </section>
+
+  <section class="blk">
+    <h2>Tool 1 · Choose your trigger</h2>
+    <p class="say">Three types, and the right answer depends on your process rather than on habit. Answer both questions about the process you mapped.</p>
+    <div class="tool">
+      <h3>Trigger selector</h3>
+      <div class="pad">
+        <div class="field">
+          <label>Does the source app support instant notifications (webhooks)?</label>
+          <div class="q">Ticket systems, form tools, and most modern SaaS do. Spreadsheets and shared inboxes usually do not.</div>
+          <div class="seg" id="q1">
+            <button data-v="yes" aria-pressed="false">Yes, it does</button>
+            <button data-v="no" aria-pressed="false">No, or I don't know</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>How much does a delay of a few minutes cost you?</label>
+          <div class="q">Is anyone measured on response time, or waiting on this to move?</div>
+          <div class="seg" id="q2">
+            <button data-v="high" aria-pressed="false">Minutes matter</button>
+            <button data-v="low" aria-pressed="false">Hours are fine</button>
+          </div>
+        </div>
+        <div class="outbox" id="trigOut"><div class="verd">Recommendation</div>Answer both questions to see which trigger fits, and why.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2>Tool 2 · What will it cost you?</h2>
+    <p class="say">The single easiest way to exhaust a free plan is a scheduled trigger that runs whether or not there is work. Do this arithmetic before you save a scenario, not after.</p>
+    <div class="tool">
+      <h3>Operations budget</h3>
+      <div class="pad">
+        <div class="field">
+          <label for="ivl">Run every…</label>
+          <div class="q">Drag to see what the interval costs against a free plan of 1,000 operations per month.</div>
+          <input type="range" id="ivl" min="0" max="6" value="2" step="1" style="width:100%;accent-color:var(--accent)">
+          <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:5px">
+            <span>1 min</span><span>5</span><span>15</span><span>30</span><span>1 hr</span><span>6 hr</span><span>1 day</span>
+          </div>
+        </div>
+        <div class="calc">
+          <div><div class="k">Interval</div><div class="v" id="cInt">15 min</div></div>
+          <div><div class="k">Runs per day</div><div class="v" id="cDay">96</div></div>
+          <div><div class="k">Runs per month</div><div class="v" id="cMo">2,880</div></div>
+          <div><div class="k">Free plan lasts</div><div class="v" id="cLast">10 days</div></div>
+        </div>
+        <div class="outbox" id="calcOut"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2>Tool 3 · Build the prompt</h2>
+    <p class="say">A prompt in a scenario is not a chat. In a chat you read a bad answer and try again; here nobody is watching, and the output goes straight into the next module. Fill in all four parts and watch the prompt assemble.</p>
+    <div class="grid2">
+      <div class="tool">
+        <h3>Four-part prompt builder</h3>
+        <div class="pad">
+          <div class="field">
+            <label for="pRole">Role</label>
+            <div class="q">Who is the model being, in one line? Not a biography — a job.</div>
+            <input type="text" id="pRole" placeholder="You are a volunteer intake assistant.">
+          </div>
+          <div class="field">
+            <label for="pTask">Task</label>
+            <div class="q">What single thing does it do with the input?</div>
+            <input type="text" id="pTask" placeholder="Summarize the response below.">
+          </div>
+          <div class="field">
+            <label for="pCons">Constraint</label>
+            <div class="q">Bound the output shape: a length, or a named set of allowed values.</div>
+            <input type="text" id="pCons" placeholder="At most 2 sentences. Then reply with one of: Tutoring, Events, Admin.">
+          </div>
+          <div class="field">
+            <label for="pFall">Fallback</label>
+            <div class="q">What should it say when the input is empty or unusable?</div>
+            <input type="text" id="pFall" placeholder="If the response is empty, reply exactly: NEEDS REVIEW.">
+          </div>
+        </div>
+      </div>
+      <div class="tool">
+        <h3>Assembled prompt</h3>
+        <div class="pad">
+          <div class="promptout" id="pOut"></div>
+          <div class="chips" id="pChips"></div>
+          <div class="outbox" id="pAdvice"><div class="verd">Check</div>Fill in the four parts to see whether this prompt survives running unattended.</div>
+        </div>
+      </div>
+    </div>
+    <p class="pull" style="border-left-color:var(--keep)">The fallback is the line people forget and the one that saves them. Without it, a blank record produces a confidently invented answer — because inventing something plausible is exactly what the model does when handed nothing.</p>
+  </section>
+
+  <section class="blk">
+    <h2>Tool 4 · Plan your five test inputs</h2>
+    <p class="say">The syllabus requires five distinct inputs. Distinct is the operative word — five runs of the same record prove only that your scenario is deterministic, which you already knew. Write what each one will actually be.</p>
+    <div class="tool">
+      <h3>Test plan</h3>
+      <div class="pad">
+        <div class="tests" id="tests"></div>
+        <div class="outbox" id="testOut"><div class="verd">Coverage</div>Fill in all five to complete your test plan.</div>
+      </div>
+    </div>
+    <p style="font-size:15px;color:var(--ink-2);max-width:74ch;margin-top:16px">A tip that makes your video much easier: build a small spreadsheet with five rows, one per category. A single scenario run then exercises all five, and the evidence is simple to record.</p>
+  </section>
+
+  <section class="blk">
+    <h2>Where AI belongs, and where it doesn't</h2>
+    <p class="say">One module. The test: if a formula could do it reliably, use the formula. AI earns its place on language and ambiguity, not on math.</p>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--auto);background:var(--auto-soft)">
+        <div class="lbl" style="color:var(--auto)">Good candidates</div>
+        <h4>Language and ambiguity</h4>
+        <ul>
+          <li>Summarize a long message into two sentences</li>
+          <li>Classify an item into one of a few named categories</li>
+          <li>Draft a first-pass reply for a human to approve</li>
+          <li>Extract structured fields from unstructured text</li>
+          <li>Flag something for a person to look at first</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:var(--stop);background:var(--stop-soft)">
+        <div class="lbl" style="color:var(--stop)">Poor candidates</div>
+        <h4>One right answer, or no review</h4>
+        <ul>
+          <li>Anything with one correct answer a rule could find</li>
+          <li>Arithmetic, lookups, or exact matching</li>
+          <li>Decisions nobody reviews before they take effect</li>
+          <li>Anything needing context the system does not hold</li>
+          <li>Rewriting someone's words when the wording is the signal</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2>When it breaks</h2>
+    <p class="say">The errors change character in Part 2. In Part 1 they were authorization errors and the message told you what was wrong. These are data errors — the message is vague, but the failing module's input panel shows exactly what arrived.</p>
+    <div class="tool">
+      <h3>Diagnostics</h3>
+      <div style="overflow-x:auto">
+      <table class="maptable">
+        <thead><tr><th>What you see</th><th>What to do</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:600">Mapping dropdown is empty</td><td>Run the scenario once first. Make only offers fields it has actually seen.</td></tr>
+          <tr><td style="font-weight:600">Output is identical every run</td><td>You typed the value instead of mapping it. Click the field and select from the previous module's output.</td></tr>
+          <tr><td style="font-weight:600">Works on one record, fails on another</td><td>That is your test working. Open the failed run and read the failing module's input panel.</td></tr>
+          <tr><td style="font-weight:600">AI output changes shape run to run</td><td>Your prompt has no format constraint. Name the allowed values or the sentence limit.</td></tr>
+          <tr><td style="font-weight:600">Operations disappearing fast</td><td>A scheduled trigger is running whether or not there is work. Switch to polling or lengthen the interval.</td></tr>
+          <tr><td style="font-weight:600">A module cannot see earlier output</td><td>It sits above the module you want, or in a different branch. Check the order.</td></tr>
+          <tr><td style="font-weight:600">API key rejected</td><td>It belongs in the connection, not the prompt. Re-create the connection.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2>Mini-Project 2 · what you are building</h2>
+    <p class="say">Everything above assembles into this. Start from the process you mapped, not from the Make app list.</p>
+    <div class="reqgrid">
+      <div class="req"><span class="mk">1</span><div><b>One trigger</b><span>And you can say why that type fits your process.</span></div></div>
+      <div class="req"><span class="mk">2</span><div><b>Two or more actions</b><span>Real actions that move or create something.</span></div></div>
+      <div class="req"><span class="mk">3</span><div><b>Data mapped, not typed</b><span>Values selected from a previous module's output.</span></div></div>
+      <div class="req"><span class="mk">4</span><div><b>One lightweight AI step</b><span>A single module, with a four-part prompt.</span></div></div>
+      <div class="req"><span class="mk">5</span><div><b>Five distinct test inputs</b><span>Results visible in your recording.</span></div></div>
+      <div class="req"><span class="mk">6</span><div><b>A short write-up</b><span>The process, the judgment step, and why you automated around it.</span></div></div>
+    </div>
+    <p class="pull" style="border-left-color:var(--stop)">The two predictable ways to lose points: typed constants instead of mapped fields, and a write-up that explains what you built rather than why that process was worth building.</p>
+  </section>
+
+  <section class="summary" id="saveblock">
+    <h2>Save your build plan</h2>
+    <p class="lede">Download your trigger choice, prompt, and test plan as a file. Upload it to the Canvas assignment, and paste the prompt straight into your Mini-Project 2 write-up.</p>
+    <div class="idbox2">
+      <div><label for="who2" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Your name</label>
+        <input type="text" id="who2" placeholder="Last, First" autocomplete="name"></div>
+      <div><label for="sect2" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Section</label>
+        <select id="sect2"><option value="">Choose…</option><option value="001">001 — in class</option><option value="OL1">OL1 — online</option></select></div>
+    </div>
+    <div class="reflect">
+      <label for="proc">The process you're automating</label>
+      <p class="q">Name it, and say which single step is the judgment that stays with a person.</p>
+      <textarea id="proc" placeholder="The process is… The judgment step is… What I'm automating around it is…"></textarea>
+    </div>
+    <p class="privacy">Nothing on this page is sent anywhere — your work stays in your browser until you download it. Describe your process in general terms: no customer names, patient information, or anything confidential to your employer.</p>
+    <div class="acts">
+      <button class="go" id="dlBtn">Download build plan</button>
+    </div>
+    <p id="saveMsg"></p>
+  </section>
+
+  <footer>
+    <span>INAI 5100 · AI in Business Operations · Dr. Lucy Zhang</span>
+    <span class="mono">Part 3 of 3 · Build</span>
+  </footer>
+</div>
+
+<script>
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pick = {q1:null,q2:null};
+
+/* ---- Tool 1: trigger ---- */
+function segWire(id){
+  document.getElementById(id).addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    document.querySelectorAll("#"+id+" button").forEach(x=>x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true"); pick[id] = b.dataset.v; trigOut();
+  });
+}
+segWire("q1"); segWire("q2");
+function trigOut(){
+  const el = document.getElementById("trigOut");
+  if(!pick.q1 || !pick.q2) return;
+  let name, body;
+  if(pick.q1==="yes" && pick.q2==="high"){
+    name="Instant webhook";
+    body="Your source supports it and latency is what you're judged on. This is the case where the extra setup pays for itself — the scenario fires within seconds of the event instead of waiting out a polling interval.";
+  } else if(pick.q1==="yes" && pick.q2==="low"){
+    name="Polling — but a webhook is fine too";
+    body="Polling is simpler to configure and a few minutes costs you nothing here. If webhook setup is straightforward in your source app, take it; otherwise polling is the sensible default and you lose nothing that matters.";
+  } else if(pick.q1==="no" && pick.q2==="high"){
+    name="Polling, on a short interval";
+    body="Without webhook support, polling is your fastest option. Use a short interval — but check the operations budget below first, because short intervals are exactly what exhausts a free plan.";
+  } else {
+    name="Polling";
+    body="The right default. It processes only actual work rather than running on a clock, and it's what a “watch for new rows” or “watch for new emails” module does.";
+  }
+  el.innerHTML = '<div class="verd">Recommendation</div><strong>'+esc(name)+'.</strong> '+esc(body)+
+    '<br><br>Whatever you choose, avoid a fixed schedule unless your process genuinely is time-based — a nightly report, a Monday reminder. A schedule runs whether or not there is anything to do.';
+}
+
+/* ---- Tool 2: operations ---- */
+const IV = [{m:1,l:"1 min"},{m:5,l:"5 min"},{m:15,l:"15 min"},{m:30,l:"30 min"},{m:60,l:"1 hour"},{m:360,l:"6 hours"},{m:1440,l:"1 day"}];
+const nf = n => n.toLocaleString("en-US");
+function calc(){
+  const iv = IV[+document.getElementById("ivl").value];
+  const perDay = Math.round(1440/iv.m), perMo = perDay*30;
+  const days = 1000/perDay;
+  document.getElementById("cInt").textContent = iv.l;
+  document.getElementById("cDay").textContent = nf(perDay);
+  const mo = document.getElementById("cMo"); mo.textContent = nf(perMo);
+  mo.className = "v " + (perMo>1000 ? "bad" : "good");
+  const last = document.getElementById("cLast");
+  last.textContent = days >= 30 ? "the month" : (days<1 ? "under a day" : Math.floor(days)+" days");
+  last.className = "v " + (days>=30 ? "good" : "bad");
+  const out = document.getElementById("calcOut");
+  out.innerHTML = perMo > 1000
+    ? '<div class="verd" style="color:var(--stop)">Over budget</div>At <strong>'+esc(iv.l)+'</strong> you use <strong>'+nf(perMo)+
+      '</strong> operations a month against a plan of 1,000 — and almost every one of those runs finds nothing to do. Lengthen the interval, or switch to a trigger that fires only when something actually happens.'
+    : '<div class="verd" style="color:var(--auto)">Within budget</div>At <strong>'+esc(iv.l)+'</strong> you use <strong>'+nf(perMo)+
+      '</strong> operations a month, leaving room for the actions each run performs. Remember that every module in the scenario costs an operation, not just the trigger.';
+}
+document.getElementById("ivl").addEventListener("input", calc); calc();
+
+/* ---- Tool 3: prompt ---- */
+const P = ["pRole","pTask","pCons","pFall"];
+const PL = {pRole:"[role]",pTask:"[task]",pCons:"[constraint]",pFall:"[fallback]"};
+function prompt(){
+  const v = {}; P.forEach(k=>v[k]=document.getElementById(k).value.trim());
+  document.getElementById("pOut").innerHTML = P.map(k=>
+    v[k] ? esc(v[k]) : '<span class="ph">'+PL[k]+'</span>').join("\n");
+  const names = {pRole:"Role",pTask:"Task",pCons:"Constraint",pFall:"Fallback"};
+  document.getElementById("pChips").innerHTML = P.map(k=>
+    '<span class="chip '+(v[k]?"on":"off")+'">'+names[k]+'</span>').join("");
+  const miss = P.filter(k=>!v[k]);
+  const adv = document.getElementById("pAdvice");
+  if(miss.length === 4){
+    adv.innerHTML = '<div class="verd">Check</div>Fill in the four parts to see whether this prompt survives running unattended.'; return;
+  }
+  if(miss.length){
+    const worst = miss.includes("pFall") ? "pFall" : (miss.includes("pCons") ? "pCons" : miss[0]);
+    const msg = {
+      pFall:"Without a fallback, a blank or unusable input produces an invented answer — and nothing downstream can tell the difference between a real result and a confident guess. Add a line naming exactly what to reply when the input is empty.",
+      pCons:"Without a constraint, the output shape drifts between runs — different lengths, different formats, different wording. Nothing downstream can rely on it. Give it a sentence limit, or name the exact values it may reply with.",
+      pRole:"Without a role, tone and framing shift from run to run. One line is enough — a job, not a biography.",
+      pTask:"Without a task, the model is guessing at what you want done with the input."
+    }[worst];
+    adv.innerHTML = '<div class="verd" style="color:var(--stop)">Not ready to run unattended</div>'+esc(msg); return;
+  }
+  const hasSet = /one of\s*:|reply with|exactly/i.test(v.pCons+" "+v.pFall);
+  const hasLen = /sentence|word|character|line|at most|no more than|\b\d+\b/i.test(v.pCons);
+  let note = "All four parts are present. ";
+  if(hasSet && hasLen) note += "Your constraint bounds both the length and the allowed values — that is the strongest form, because the next module can branch on the result safely.";
+  else if(hasLen) note += "You have bounded the length. If anything downstream needs to branch on this output, also name the exact values it may reply with.";
+  else if(hasSet) note += "You have named the allowed values, which is what makes the output safe to branch on. Consider adding a length limit for any free-text part.";
+  else note += "Your constraint is present but vague — a limit the model can measure (a sentence count, or a named set of values) works better than an instruction to be brief.";
+  adv.innerHTML = '<div class="verd" style="color:var(--auto)">Ready to run unattended</div>'+esc(note);
+}
+P.forEach(k=>document.getElementById(k).addEventListener("input", prompt)); prompt();
+
+/* ---- Tool 4: tests ---- */
+const T = [
+  ["Normal","The happy path. Proves the flow runs at all."],
+  ["Long","A wall of text. Does it break your length limit or overflow the next field?"],
+  ["Empty or partial","A missing field. Does your fallback fire, or does the model invent?"],
+  ["Odd","Accented characters, another language, an unexpected format."],
+  ["Boundary","The value at the exact edge of your rule. Where does it land?"]
+];
+document.getElementById("tests").innerHTML = T.map((t,i)=>
+  `<div class="trow"><div class="tk"><div class="tname">${i+1} · ${esc(t[0])}</div><div class="twhat">${esc(t[1])}</div></div>
+   <input type="text" class="tin" id="t${i}" placeholder="What will this input actually be?"></div>`).join("");
+function tests(){
+  const n = T.filter((_,i)=>document.getElementById("t"+i).value.trim()).length;
+  const out = document.getElementById("testOut");
+  out.innerHTML = n===5
+    ? '<div class="verd" style="color:var(--auto)">Complete</div>Five categories covered. Build these as five rows in a test spreadsheet so one run demonstrates all of them.'
+    : '<div class="verd">Coverage</div><strong>'+n+' of 5</strong> planned. '+
+      (n>=3 ? 'The empty-or-partial case is the one that matters most — it is where silent failures live.' : 'Fill in all five to complete your test plan.');
+}
+T.forEach((_,i)=>document.getElementById("t"+i).addEventListener("input", tests)); tests();
+
+/* ---- download + local save ---- */
+
+function ghDownload(filename, text){
+  try{
+    const blob = new Blob([text], {type:"text/markdown;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.style.display = "none";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 1500);
+    return true;
+  }catch(e){ return false; }
+}
+function ghStore(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function ghLoad(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+function collect(){
+  const v = k=>document.getElementById(k).value.trim();
+  const trigEl = document.querySelector("#trigOut strong");
+  return {
+    name:v("who2"), section:document.getElementById("sect2").value,
+    process:v("proc"),
+    trigger: trigEl ? trigEl.textContent.replace(/\.$/,"") : "",
+    interval:IV[+document.getElementById("ivl").value].l,
+    prompt:{role:v("pRole"),task:v("pTask"),constraint:v("pCons"),fallback:v("pFall")},
+    tests:T.map((t,i)=>({category:t[0], plan:v("t"+i)}))
+  };
+}
+function asText(d){
+  return `INAI 5100 - Mini-Project 2 build plan
+Name: ${d.name||"(not given)"}    Section: ${d.section||"(not given)"}
+
+PROCESS
+${d.process||"(not filled in)"}
+
+TRIGGER
+${d.trigger||"(not chosen)"}
+Interval considered: ${d.interval}
+
+PROMPT (paste this into your write-up)
+${d.prompt.role||"[role]"}
+${d.prompt.task||"[task]"}
+${d.prompt.constraint||"[constraint]"}
+${d.prompt.fallback||"[fallback]"}
+
+FIVE TEST INPUTS
+${d.tests.map((t,i)=>`${i+1}. ${t.category}: ${t.plan||"(not planned)"}`).join("\n")}
+`;
+}
+document.getElementById("dlBtn").addEventListener("click", ()=>{
+  const msg = document.getElementById("saveMsg"); msg.className=""; msg.textContent="";
+  const d = collect();
+  if(!d.name){ msg.className="bad"; msg.textContent="Add your name first."; document.getElementById("who2").focus(); return; }
+  if(!d.section){ msg.className="bad"; msg.textContent="Choose your section."; document.getElementById("sect2").focus(); return; }
+  const safe = d.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"") || "build-plan";
+  if(ghDownload("mp2-build-plan-"+safe+".md", asText(d))){
+    msg.className="good"; msg.textContent="Downloaded. Upload that file to the Canvas assignment.";
+  }else{
+    msg.className="bad"; msg.textContent="Your browser blocked the download. Select the page text and copy it into a document instead.";
+  }
+});
+
+/* remember work on this device */
+const BK = "inai5100-buildbench";
+const FIELDS = ["who2","sect2","proc","pRole","pTask","pCons","pFall","t0","t1","t2","t3","t4","ivl"];
+function persist(){
+  const o = {}; FIELDS.forEach(k=>{ const el=document.getElementById(k); if(el) o[k]=el.value; });
+  o.q1 = pick.q1; o.q2 = pick.q2;
+  ghStore(BK, JSON.stringify(o));
+}
+(function restore(){
+  const raw = ghLoad(BK); if(!raw) return;
+  let d; try{ d = JSON.parse(raw); }catch(e){ return; }
+  FIELDS.forEach(k=>{ const el=document.getElementById(k); if(el && d[k]!==undefined) el.value = d[k]; });
+  ["q1","q2"].forEach(q=>{
+    if(!d[q]) return;
+    pick[q] = d[q];
+    const btn = document.querySelector("#"+q+" button[data-v='"+d[q]+"']");
+    if(btn){ document.querySelectorAll("#"+q+" button").forEach(x=>x.setAttribute("aria-pressed","false"));
+             btn.setAttribute("aria-pressed","true"); }
+  });
+  trigOut(); calc(); prompt(); tests();
+})();
+FIELDS.forEach(k=>{ const el=document.getElementById(k); if(el){
+  el.addEventListener("input", persist); el.addEventListener("change", persist); } });
+document.getElementById("q1").addEventListener("click", persist);
+document.getElementById("q2").addEventListener("click", persist);
+</script>
+
+
+</html>
