@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Five failed automation scenarios. Read the input panel, find the cause, and see the fix.">
+<title>Break It</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+
+
+:root{
+  --ink:#16202B; --ink-2:#3D4E5C; --ink-3:#6B7F8D;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EFF1;
+  --rule:#D3DDE2; --rule-strong:#B4C3CB;
+  --accent:#0F6E6E; --accent-2:#0B5555; --accent-soft:#E0EFEE;
+  --keep:#9C5A00; --keep-soft:#FBEEDC;
+  --auto:#2C6349; --auto-soft:#E2EFE8;
+  --stop:#9B2C2C; --stop-soft:#F8E7E7;
+  --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px -12px rgba(22,32,43,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+    --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+    --rule:#2A3742; --rule-strong:#3B4B58;
+    --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+    --keep:#D89A4A; --keep-soft:#31251A;
+    --auto:#68B08C; --auto-soft:#16281F;
+    --stop:#DE8585; --stop-soft:#301A1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+  --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+  --rule:#2A3742; --rule-strong:#3B4B58;
+  --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+  --keep:#D89A4A; --keep-soft:#31251A;
+  --auto:#68B08C; --auto-soft:#16281F;
+  --stop:#DE8585; --stop-soft:#301A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast-in{max-width:1200px;margin:0 auto;padding:22px 24px 20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-size:29px;line-height:1.14;margin:0;font-weight:600;letter-spacing:-.017em;text-wrap:balance}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:15px;max-width:60ch}
+.idbox{display:flex;flex-direction:column;gap:5px;min-width:214px}
+.idbox label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.idrow{display:flex;gap:8px}
+input[type=text],select{
+  font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);
+  color:var(--ink);min-width:0;width:100%}
+input[type=text]:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---------- progress rail ---------- */
+.rail{background:var(--surface-2);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40}
+.rail-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;gap:26px;
+  align-items:center;overflow-x:auto}
+.rail-grp{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.rail-name{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pip{width:22px;height:6px;border-radius:1px;background:var(--rule-strong);transition:background .18s}
+.pip.done{background:var(--auto)}
+.pip.miss{background:var(--stop)}
+.pip.here{background:var(--accent)}
+.rail-score{margin-left:auto;flex:0 0 auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;margin:26px 0 0;box-shadow:var(--shadow)}
+.intro h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15px;max-width:74ch}
+.intro p:last-child{margin-bottom:0}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.howto div{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.howto b{display:block;font-size:13.5px;margin-bottom:2px}
+.howto span{font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- case ---------- */
+.case{margin-top:34px;scroll-margin-top:64px}
+.case-head{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:18px}
+.case-kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.case-head h2{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.case-head .org{margin:4px 0 0;color:var(--ink-3);font-size:14px;
+  font-family:"IBM Plex Mono",monospace}
+.case-body{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:920px){.case-body{grid-template-columns:1fr}}
+
+/* dossier */
+.dossier{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:921px){.dossier{position:sticky;top:60px}}
+.dossier h3{margin:0;padding:12px 16px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.dossier .ctx{padding:14px 16px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.maptable{width:100%;border-collapse:collapse;font-size:13px}
+.maptable th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 10px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.maptable td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.maptable tr:last-child td{border-bottom:none}
+.maptable td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;width:26px}
+.maptable td.w{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;font-size:12px}
+.maptable tr.waits{background:var(--keep-soft)}
+.maptable tr.waits td.w{color:var(--keep);font-weight:600}
+.dossier .note{padding:12px 16px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--rule);
+  background:var(--surface-2)}
+
+/* decisions */
+.decks{display:flex;flex-direction:column;gap:16px}
+.dec{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:18px 20px;box-shadow:var(--shadow)}
+.dec.locked{opacity:.55}
+.dec-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dec h4{margin:5px 0 4px;font-size:17.5px;font-weight:600;letter-spacing:-.01em;line-height:1.32;text-wrap:balance}
+.dec .hint{margin:0 0 13px;font-size:14px;color:var(--ink-2)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:13px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;
+  font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);
+  border-radius:4px;margin-top:2px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* verdict */
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:13px 16px;border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{color:var(--ink);font-weight:600}
+
+/* ---------- summary ---------- */
+.summary{margin-top:44px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:8px;padding:26px;box-shadow:var(--shadow)}
+.summary h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.summary .lede{margin:0 0 20px;color:var(--ink-2);font-size:15px;max-width:70ch}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.reflect{margin-bottom:20px}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;
+  padding:11px 12px;border:1px solid var(--rule-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);resize:vertical;min-height:92px}
+textarea:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#submitMsg{margin-top:12px;font-size:14.5px}
+#submitMsg.good{color:var(--auto);font-weight:600}
+#submitMsg.bad{color:var(--stop)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+
+</style>
+</head>
+<body>
+<style>
+.hero{max-width:1200px;margin:0 auto;padding:40px 24px 24px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:18ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:66ch}
+.nav{display:flex;gap:9px;flex-wrap:wrap}
+a.gobtn{display:inline-block;font-size:14px;font-weight:600;padding:10px 18px;border-radius:6px;
+  background:var(--accent);color:#fff;text-decoration:none;border:1px solid var(--accent);white-space:nowrap}
+:root[data-theme="dark"] a.gobtn{color:#0E151B}
+a.gobtn.alt{background:transparent;color:var(--accent);border-color:var(--rule-strong)}
+a.gobtn.alt:hover{background:var(--accent-soft);border-color:var(--accent)}
+section.blk{margin-top:40px;scroll-margin-top:20px}
+section.blk > h2{margin:0 0 5px;font-size:25px;font-weight:600;letter-spacing:-.018em;
+  border-top:2px solid var(--ink);padding-top:14px}
+section.blk > .say{margin:0 0 18px;font-size:16px;color:var(--ink-2);max-width:72ch}
+.pull{border-left:3px solid var(--accent);padding:4px 0 4px 16px;margin:20px 0 0;
+  font-size:17.5px;line-height:1.45;max-width:68ch}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* incident */
+.inc{background:var(--surface);border:1px solid var(--rule);border-radius:8px;box-shadow:var(--shadow);
+  overflow:hidden;margin-bottom:18px}
+.inc-head{padding:14px 18px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.inc-n{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;color:var(--accent)}
+.inc-head h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.012em}
+.inc .pad{padding:18px}
+.sym{border-left:3px solid var(--keep);background:var(--keep-soft);padding:12px 15px;border-radius:0 6px 6px 0;
+  margin-bottom:16px}
+.sym .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  font-weight:600;color:var(--keep);margin-bottom:4px}
+.sym p{margin:0;font-size:15px;color:var(--ink)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media (max-width:820px){.panels{grid-template-columns:1fr}}
+.panel{border:1px solid var(--rule);border-radius:7px;overflow:hidden}
+.panel h4{margin:0;padding:9px 13px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.11em;
+  text-transform:uppercase;font-weight:600;color:var(--ink-3);border-bottom:1px solid var(--rule);
+  background:var(--surface-2)}
+.kv{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.75;padding:11px 13px;margin:0;
+  white-space:pre-wrap;color:var(--ink)}
+.kv .k{color:var(--ink-3)}
+.kv .miss{color:var(--stop);font-weight:600}
+.kv .ok{color:var(--auto)}
+.errline{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--stop-soft);
+  color:var(--stop);padding:9px 13px;border-radius:5px;margin:0 0 16px;border:1px solid var(--stop)}
+.errline.none{background:var(--auto-soft);color:var(--auto);border-color:var(--auto)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;font:inherit;
+  color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);border-radius:4px;
+  margin-top:2px;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;border:1px solid var(--rule-strong);
+  background:transparent;color:var(--ink-2);cursor:pointer}
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);padding:13px 16px;
+  border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)} .verdict p:last-child{margin:0}
+.verdict strong{color:var(--ink)}
+.fixrow{margin-top:13px;padding-top:12px;border-top:1px solid var(--rule)}
+.fixrow .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  font-weight:600;color:var(--accent);margin-bottom:4px}
+.fixrow p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:17px 19px;box-shadow:var(--shadow)}
+.card .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600}
+.card h4{margin:5px 0 6px;font-size:17px;font-weight:600}
+.card p{margin:0;font-size:14px;color:var(--ink-2)}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 15px;max-width:74ch;border-left:3px solid var(--keep);padding-left:12px}
+#dlMsg{margin-top:11px;font-size:14.5px}
+#dlMsg.good{color:var(--auto);font-weight:600} #dlMsg.bad{color:var(--stop)}
+.idbox2{display:grid;grid-template-columns:1fr 160px;gap:10px;margin-bottom:16px}
+@media (max-width:560px){.idbox2{grid-template-columns:1fr}}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;padding:11px 12px;
+  border:1px solid var(--rule-strong);border-radius:6px;background:var(--surface);color:var(--ink);
+  resize:vertical;min-height:88px}
+input[type=text],select{font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);color:var(--ink);width:100%}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <p class="eyebrow">INAI 5100 · Weeks 6–7 · Many Paths</p>
+      <h1 style="font-size:25px">Week 7 · Diagnosis</h1>
+    </div>
+    <div class="nav">
+      <a class="gobtn alt" href="./router-lab.html">Router Lab</a>
+      <a class="gobtn alt" href="./build-bench.html">Build Bench</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <p class="eyebrow">Interactive · Week 7</p>
+  <h1>Break It</h1>
+  <p class="lede">Five scenarios that went wrong. For each one you get the symptom and the failing module's input panel — the same two things you would have in real life. Find the cause from the data, not from the error text.</p>
+</div>
+
+<div class="wrap">
+
+  <section class="blk" style="margin-top:6px">
+    <h2>Read the panel, not the message</h2>
+    <p class="say">In Week 3 the errors were authorization errors and the message told you what was wrong. These are data errors. The message is usually vague or absent — but the failing module's input panel shows you exactly what arrived.</p>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--stop)">
+        <div class="lbl" style="color:var(--stop)">What most people do</div>
+        <h4>Read the error text and guess</h4>
+        <p>“Cannot read property of undefined” tells you something was missing. It does not tell you which field, which record, or why — and that is the part you need.</p>
+      </div>
+      <div class="card" style="border-color:var(--auto)">
+        <div class="lbl" style="color:var(--auto)">What works</div>
+        <h4>Open the bundle and compare</h4>
+        <p>What did this module actually receive, and what did it expect? Nine times out of ten a field is missing, empty, or a different type than you assumed.</p>
+      </div>
+    </div>
+    <p class="pull">Every incident below gives you both panels. Work the data before you pick an answer.</p>
+  </section>
+
+  <section class="blk">
+    <h2>The incidents</h2>
+    <p class="say">Five real-shaped failures, ordered roughly by how hard they are to see.</p>
+    <div id="cases"></div>
+  </section>
+
+  <section class="summary" id="saveblock">
+    <h2>Your diagnosis log</h2>
+    <p class="lede">Download what you found and bring it to the lab. Then run the same reading on your own scenario.</p>
+    <div class="tally">
+      <div><div class="k">Diagnosed</div><div class="v" id="tMade">0<span style="font-size:15px;color:var(--ink-3)">/5</span></div></div>
+      <div><div class="k">First-try correct</div><div class="v" id="tRight">0</div></div>
+      <div><div class="k">Silent failures</div><div class="v" id="tSilent">3</div></div>
+    </div>
+    <div class="idbox2">
+      <div><label for="who" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Your name</label>
+        <input type="text" id="who" placeholder="Last, First" autocomplete="name"></div>
+      <div><label for="sect" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Section</label>
+        <select id="sect"><option value="">Choose…</option><option value="001">001 — in class</option><option value="OL1">OL1 — online</option></select></div>
+    </div>
+    <div class="reflect">
+      <label for="r1">Your own scenario</label>
+      <p class="q">Which of these five could happen to your Mini-Project 2 scenario? What would you have to change so that it could not happen silently?</p>
+      <textarea id="r1" placeholder="The one that could happen to mine is… To make it visible I would…"></textarea>
+    </div>
+    <p class="privacy">Nothing on this page is sent anywhere. Your work stays in your browser until you download it.</p>
+    <div class="acts">
+      <button class="go" id="dlBtn">Download diagnosis log</button>
+      <button class="ghost" id="cpBtn">Copy instead</button>
+    </div>
+    <p id="dlMsg"></p>
+  </section>
+
+  <footer>
+    <span>INAI 5100 · AI in Business Operations · Dr. Lucy Zhang</span>
+    <span class="mono">Weeks 6–7 · Break It</span>
+  </footer>
+</div>
+
+<script>
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const CASES = [
+{
+ id:"c1", n:"Incident 01", title:"The welcome email nobody received",
+ sym:"A scenario sends a welcome email when someone signs up. It ran 41 times overnight and Make reports 41 successes. Three people have called to say they never got an email.",
+ err:null, errText:"No error. All 41 operations completed.",
+ got:[["name","Dana Okafor"],["email",""],["plan","Standard"],["signup_date","2026-09-28"]],
+ want:[["to","{{email}}"],["subject","Welcome, {{name}}"],["body","…"]],
+ opts:[
+  {t:"The email service rate-limited the scenario", s:"41 sends in one night is a lot."},
+  {t:"The email field is empty on some records", s:"The module received a blank address."},
+  {t:"The AI step produced a malformed subject line", s:"Something in the template broke."},
+  {t:"The trigger fired twice for some records", s:"Duplicates confused the send."}],
+ a:1,
+ why:"<p><strong>The email field is blank.</strong> Look at the input panel: <span class=\"mono\">email</span> arrived as an empty string. Many mail modules accept an empty recipient without erroring — they simply have nothing to send to, and report success.</p><p>This is the silent failure in its purest form. Forty-one successes, three of which went nowhere. Nothing in the run history distinguishes them.</p>",
+ fix:"Add a filter before the send: only continue when email is not empty. Route the empties to a fallback that logs them. Now the three become visible the same night rather than three phone calls later.",
+ silent:true
+},
+{
+ id:"c2", n:"Incident 02", title:"Every summary is identical",
+ sym:"An AI step summarizes incoming support tickets. It works. But looking at a week of output, every single summary reads “Customer reports an issue with their account and requests assistance.”",
+ err:null, errText:"No error. Every operation completed successfully.",
+ got:[["ticket_id","T-2203"],["body","The export button on the reports page returns a 500 error every time"],["prompt_input","Summarize this ticket."]],
+ want:[["prompt","Summarize this ticket."],["note","(no ticket data referenced)"]],
+ opts:[
+  {t:"The model is too small for the task", s:"It needs a more capable tier."},
+  {t:"The ticket body was never mapped into the prompt", s:"The prompt has no reference to the data."},
+  {t:"The temperature setting is too low", s:"Output has collapsed to one answer."},
+  {t:"The tickets really are all the same", s:"Support volume is repetitive."}],
+ a:1,
+ why:"<p><strong>The ticket body is not in the prompt.</strong> Compare the panels. The module <em>received</em> the ticket body — it is right there in the input. But the prompt sent to the model is the literal text “Summarize this ticket,” with no mapped field.</p><p>So the model is summarizing nothing, every time, and producing the most generic plausible sentence it can. This is the typed-constant problem from Weeks 4–5 wearing a different costume.</p>",
+ fix:"Map the ticket body into the prompt. Click the field, select the body from the previous module's output. And add a fallback line so an empty body returns NO CONTENT rather than a confident invention.",
+ silent:true
+},
+{
+ id:"c3", n:"Incident 03", title:"It worked yesterday",
+ sym:"A scenario that has run daily for three weeks failed this morning. The module turned red. Nothing about the scenario was changed.",
+ err:"400 Bad Request — invalid value for parameter 'amount': expected number, received string",
+ errText:"400 Bad Request — invalid value for parameter 'amount': expected number, received string",
+ got:[["invoice","INV-8841"],["amount","1,250.00"],["currency","USD"]],
+ want:[["amount","(number)"],["currency","(text)"]],
+ opts:[
+  {t:"The vendor's API changed its authentication", s:"Credentials need rotating."},
+  {t:"A value arrived formatted with a comma", s:"The amount is text, not a number."},
+  {t:"The scenario exceeded its operations quota", s:"The free plan ran out."},
+  {t:"The connection expired after three weeks", s:"OAuth tokens expire."}],
+ a:1,
+ why:"<p><strong>The amount arrived as <span class=\"mono\">\"1,250.00\"</span> — a string with a thousands separator.</strong> For three weeks every invoice was under a thousand dollars, so the value looked like a clean number. The first four-figure invoice introduced a comma and the receiving module rejected it.</p><p>This is the good kind of failure: loud, immediate, and named. But notice what it reveals — the scenario was always fragile. It only looked reliable because the data had not yet been varied enough to expose it. That is what your five distinct test inputs are for.</p>",
+ fix:"Strip the separator before the handoff, or parse the value to a number explicitly. Then add a boundary case to your test set — the value that crosses a formatting threshold.",
+ silent:false
+},
+{
+ id:"c4", n:"Incident 04", title:"The customer got three emails",
+ sym:"A router sends new orders down different paths. One customer received three separate confirmation emails for the same order, within a few seconds of each other.",
+ err:null, errText:"No error. Three operations completed on one bundle.",
+ got:[["order","ORD-5512"],["value","890"],["customer_tier","Premium"],["region","West"]],
+ want:[["Route A","value is greater than 500"],["Route B","customer_tier is Premium"],["Route C","region is West"]],
+ opts:[
+  {t:"The trigger fired three times", s:"A polling overlap created duplicates."},
+  {t:"The order matched all three route filters", s:"Every branch that passes, runs."},
+  {t:"An error handler retried the send twice", s:"Break retries can duplicate."},
+  {t:"The email module was configured with three recipients", s:"A mapping mistake."}],
+ a:1,
+ why:"<p><strong>The order satisfies all three filters.</strong> Value 890 is over 500. Tier is Premium. Region is West. A router checks every branch independently — it does not stop at the first match — so all three routes ran and all three sent an email.</p><p>This is the Router Lab's first rule, in production. The filters are each individually sensible; the problem is that nobody checked whether they could all be true at once.</p>",
+ fix:"Decide what you actually meant. If the routes are supposed to be exclusive, use Make\u2019s if-else module instead of a router — if-else runs only the first condition that passes, which is exactly the behaviour you assumed. If a record genuinely should take several paths, make sure only one of them emails the customer.",
+ silent:false
+},
+{
+ id:"c5", n:"Incident 05", title:"Half the month's operations, gone by the 9th",
+ sym:"A student's free plan shows 1,000 operations used by the ninth of the month. The scenario has produced 14 useful outputs in that time.",
+ err:null, errText:"No error. The scenario is running exactly as configured.",
+ got:[["trigger","Watch rows — scheduled"],["interval","every 5 minutes"],["modules_per_run","3"],["rows_found_most_runs","0"]],
+ want:[["budget","1,000 operations / month"],["note","every module in a run costs one operation"]],
+ opts:[
+  {t:"The AI step is unusually expensive", s:"Model calls cost more."},
+  {t:"A scheduled trigger is running whether or not there is work", s:"Most runs find nothing and still cost operations."},
+  {t:"The scenario has an infinite loop", s:"Something is re-triggering itself."},
+  {t:"Another student is using the same account", s:"Shared credentials."}],
+ a:1,
+ why:"<p><strong>The schedule is the cost.</strong> Every five minutes is 288 runs a day. Most of them find no new rows and do nothing useful — but the trigger module still costs an operation each time, and the run itself costs more when it proceeds.</p><p>Fourteen useful outputs for a thousand operations is a ratio worth noticing. The scenario is working exactly as configured; the configuration is the problem.</p>",
+ fix:"Lengthen the interval to match how often work actually arrives, or switch to an instant trigger if the source app supports webhooks. Before saving any schedule, convert it to runs per month and compare it against your budget.",
+ silent:true
+}
+];
+
+const state = {ans:{}};
+function kv(rows){
+  return rows.map(([k,v])=>`<span class="k">${esc(k)}:</span> ` +
+    (v==="" ? '<span class="miss">(empty)</span>' : esc(v))).join("\n");
+}
+document.getElementById("cases").innerHTML = CASES.map(c=>`
+  <div class="inc" id="i-${c.id}">
+    <div class="inc-head"><span class="inc-n">${esc(c.n)}</span><h3>${esc(c.title)}</h3></div>
+    <div class="pad">
+      <div class="sym"><div class="lbl">Symptom</div><p>${esc(c.sym)}</p></div>
+      <p class="errline ${c.err?"":"none"}">${esc(c.errText)}</p>
+      <div class="panels">
+        <div class="panel"><h4>What the module received</h4><pre class="kv">${kv(c.got)}</pre></div>
+        <div class="panel"><h4>What it expected</h4><pre class="kv">${kv(c.want)}</pre></div>
+      </div>
+      <div class="opts">
+        ${c.opts.map((o,j)=>`<button class="opt" data-c="${c.id}" data-o="${j}">
+          <span class="box" aria-hidden="true">${String.fromCharCode(65+j)}</span>
+          <span class="txt">${esc(o.t)}<em>${esc(o.s)}</em></span></button>`).join("")}
+      </div>
+      <div class="acts"><button class="go" data-check="${c.id}" disabled>Check diagnosis</button></div>
+      <div class="vwrap"></div>
+    </div>
+  </div>`).join("");
+
+document.addEventListener("click", e=>{
+  const opt = e.target.closest(".opt");
+  if(opt && !opt.disabled){
+    const {c,o} = opt.dataset;
+    if(state.ans[c] && state.ans[c].locked) return;
+    const box = document.getElementById("i-"+c);
+    box.querySelectorAll(".opt").forEach(b=>b.classList.remove("sel"));
+    opt.classList.add("sel");
+    state.ans[c] = {picked:+o, locked:false};
+    box.querySelector("[data-check]").disabled = false;
+    persist(); return;
+  }
+  const chk = e.target.closest("[data-check]");
+  if(chk) reveal(chk.dataset.check);
+});
+
+function reveal(cid){
+  const c = CASES.find(x=>x.id===cid), rec = state.ans[cid];
+  if(!rec || rec.locked) return;
+  rec.locked = true; rec.correct = rec.picked === c.a;
+  const box = document.getElementById("i-"+cid);
+  box.querySelectorAll(".opt").forEach((b,j)=>{
+    b.disabled = true; b.classList.remove("sel");
+    if(j===c.a) b.classList.add("right");
+    else if(j===rec.picked) b.classList.add("wrong");
+  });
+  const btn = box.querySelector("[data-check]"); if(btn) btn.remove();
+  box.querySelector(".vwrap").innerHTML =
+    `<div class="verdict ${rec.correct?"ok":"no"}">
+       <div class="tag">${rec.correct?"Correct":"Not this time — read the panel again"}</div>
+       ${c.why}
+       <div class="fixrow"><div class="lbl">The fix</div><p>${esc(c.fix)}</p></div>
+     </div>`;
+  update(); persist();
+}
+function update(){
+  const made = Object.values(state.ans).filter(a=>a.locked).length;
+  const right = Object.values(state.ans).filter(a=>a.locked && a.correct).length;
+  document.getElementById("tMade").innerHTML = made+'<span style="font-size:15px;color:var(--ink-3)">/5</span>';
+  document.getElementById("tRight").textContent = right;
+}
+update();
+
+/* ---------- download / copy ---------- */
+function ghDownload(filename, text){
+  try{
+    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=filename; a.style.display="none";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1500); return true;
+  }catch(e){ return false; }
+}
+function ghCopy(text,msgEl,okText){
+  const done=ok=>{msgEl.className=ok?"good":"bad";
+    msgEl.textContent=ok?okText:"Couldn't copy automatically. Select the text and copy it manually.";};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>done(true),()=>done(false));
+  }else{
+    try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");
+      ta.style.position="absolute";ta.style.left="-9999px";document.body.appendChild(ta);ta.select();
+      const ok=document.execCommand("copy");document.body.removeChild(ta);done(ok);
+    }catch(e){done(false);}
+  }
+}
+function asText(){
+  const name=document.getElementById("who").value.trim()||"(no name)";
+  const sect=document.getElementById("sect").value||"(no section)";
+  let out="INAI 5100 - Break It: diagnosis log\nName: "+name+"    Section: "+sect+"\n";
+  CASES.forEach(c=>{
+    const r=state.ans[c.id];
+    out+="\n"+c.n+" - "+c.title+"\n  Symptom: "+c.sym+"\n  You diagnosed: "+
+      (r&&r.locked ? c.opts[r.picked].t+(r.correct?"  [correct]":"  [not the cause]") : "(not answered)")+"\n";
+    if(r&&r.locked&&!r.correct) out+="  Actual cause: "+c.opts[c.a].t+"\n";
+    if(r&&r.locked) out+="  Fix: "+c.fix+"\n";
+  });
+  out+="\nMY OWN SCENARIO\n"+(document.getElementById("r1").value.trim()||"(not written)")+"\n";
+  return out;
+}
+document.getElementById("dlBtn").addEventListener("click", ()=>{
+  const msg=document.getElementById("dlMsg"); msg.className=""; msg.textContent="";
+  const name=document.getElementById("who").value.trim();
+  if(!name){msg.className="bad";msg.textContent="Add your name first.";document.getElementById("who").focus();return;}
+  if(!document.getElementById("sect").value){msg.className="bad";msg.textContent="Choose your section.";document.getElementById("sect").focus();return;}
+  const safe=name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"break-it";
+  if(ghDownload("break-it-"+safe+".txt", asText())){msg.className="good";msg.textContent="Downloaded.";}
+  else {msg.className="bad";msg.textContent="Your browser blocked the download. Use “Copy instead”.";}
+});
+document.getElementById("cpBtn").addEventListener("click", ()=>{
+  const msg=document.getElementById("dlMsg"); msg.className=""; msg.textContent="";
+  if(!document.getElementById("who").value.trim()){msg.className="bad";msg.textContent="Add your name first.";document.getElementById("who").focus();return;}
+  ghCopy(asText(), msg, "Copied. Paste it wherever you need it.");
+});
+
+/* ---------- remember ---------- */
+const BK="inai5100-breakit";
+function persist(){
+  try{localStorage.setItem(BK,JSON.stringify({ans:state.ans,
+    who:document.getElementById("who").value,sect:document.getElementById("sect").value,
+    r1:document.getElementById("r1").value}));}catch(e){}
+}
+(function restore(){
+  let d; try{ d=JSON.parse(localStorage.getItem(BK)||""); }catch(e){ return; }
+  if(!d) return;
+  if(d.who) document.getElementById("who").value=d.who;
+  if(d.sect) document.getElementById("sect").value=d.sect;
+  if(d.r1) document.getElementById("r1").value=d.r1;
+  if(d.ans) Object.keys(d.ans).forEach(k=>{
+    const r=d.ans[k]; if(!r||!r.locked) return;
+    state.ans[k]={picked:r.picked,locked:false}; reveal(k);
+  });
+})();
+["who","sect","r1"].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener("input",persist); el.addEventListener("change",persist);
+});
+</script>
+
+</body>
+</html>

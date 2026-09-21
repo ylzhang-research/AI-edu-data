@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Plan an AI Learning Circle: membership, cadence, how findings travel, and the obstacles a real plan has to name.">
+<title>Learning Circle Planner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+
+
+:root{
+  --ink:#16202B; --ink-2:#3D4E5C; --ink-3:#6B7F8D;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EFF1;
+  --rule:#D3DDE2; --rule-strong:#B4C3CB;
+  --accent:#0F6E6E; --accent-2:#0B5555; --accent-soft:#E0EFEE;
+  --keep:#9C5A00; --keep-soft:#FBEEDC;
+  --auto:#2C6349; --auto-soft:#E2EFE8;
+  --stop:#9B2C2C; --stop-soft:#F8E7E7;
+  --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px -12px rgba(22,32,43,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+    --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+    --rule:#2A3742; --rule-strong:#3B4B58;
+    --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+    --keep:#D89A4A; --keep-soft:#31251A;
+    --auto:#68B08C; --auto-soft:#16281F;
+    --stop:#DE8585; --stop-soft:#301A1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+  --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+  --rule:#2A3742; --rule-strong:#3B4B58;
+  --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+  --keep:#D89A4A; --keep-soft:#31251A;
+  --auto:#68B08C; --auto-soft:#16281F;
+  --stop:#DE8585; --stop-soft:#301A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast-in{max-width:1200px;margin:0 auto;padding:22px 24px 20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-size:29px;line-height:1.14;margin:0;font-weight:600;letter-spacing:-.017em;text-wrap:balance}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:15px;max-width:60ch}
+.idbox{display:flex;flex-direction:column;gap:5px;min-width:214px}
+.idbox label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.idrow{display:flex;gap:8px}
+input[type=text],select{
+  font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);
+  color:var(--ink);min-width:0;width:100%}
+input[type=text]:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---------- progress rail ---------- */
+.rail{background:var(--surface-2);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40}
+.rail-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;gap:26px;
+  align-items:center;overflow-x:auto}
+.rail-grp{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.rail-name{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pip{width:22px;height:6px;border-radius:1px;background:var(--rule-strong);transition:background .18s}
+.pip.done{background:var(--auto)}
+.pip.miss{background:var(--stop)}
+.pip.here{background:var(--accent)}
+.rail-score{margin-left:auto;flex:0 0 auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;margin:26px 0 0;box-shadow:var(--shadow)}
+.intro h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15px;max-width:74ch}
+.intro p:last-child{margin-bottom:0}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.howto div{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.howto b{display:block;font-size:13.5px;margin-bottom:2px}
+.howto span{font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- case ---------- */
+.case{margin-top:34px;scroll-margin-top:64px}
+.case-head{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:18px}
+.case-kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.case-head h2{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.case-head .org{margin:4px 0 0;color:var(--ink-3);font-size:14px;
+  font-family:"IBM Plex Mono",monospace}
+.case-body{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:920px){.case-body{grid-template-columns:1fr}}
+
+/* dossier */
+.dossier{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:921px){.dossier{position:sticky;top:60px}}
+.dossier h3{margin:0;padding:12px 16px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.dossier .ctx{padding:14px 16px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.maptable{width:100%;border-collapse:collapse;font-size:13px}
+.maptable th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 10px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.maptable td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.maptable tr:last-child td{border-bottom:none}
+.maptable td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;width:26px}
+.maptable td.w{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;font-size:12px}
+.maptable tr.waits{background:var(--keep-soft)}
+.maptable tr.waits td.w{color:var(--keep);font-weight:600}
+.dossier .note{padding:12px 16px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--rule);
+  background:var(--surface-2)}
+
+/* decisions */
+.decks{display:flex;flex-direction:column;gap:16px}
+.dec{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:18px 20px;box-shadow:var(--shadow)}
+.dec.locked{opacity:.55}
+.dec-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dec h4{margin:5px 0 4px;font-size:17.5px;font-weight:600;letter-spacing:-.01em;line-height:1.32;text-wrap:balance}
+.dec .hint{margin:0 0 13px;font-size:14px;color:var(--ink-2)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:13px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;
+  font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);
+  border-radius:4px;margin-top:2px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* verdict */
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:13px 16px;border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{color:var(--ink);font-weight:600}
+
+/* ---------- summary ---------- */
+.summary{margin-top:44px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:8px;padding:26px;box-shadow:var(--shadow)}
+.summary h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.summary .lede{margin:0 0 20px;color:var(--ink-2);font-size:15px;max-width:70ch}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.reflect{margin-bottom:20px}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;
+  padding:11px 12px;border:1px solid var(--rule-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);resize:vertical;min-height:92px}
+textarea:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#submitMsg{margin-top:12px;font-size:14.5px}
+#submitMsg.good{color:var(--auto);font-weight:600}
+#submitMsg.bad{color:var(--stop)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+
+</style>
+</head>
+<body>
+<style>
+.hero{max-width:1200px;margin:0 auto;padding:40px 24px 24px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:19ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:66ch}
+.nav{display:flex;gap:9px;flex-wrap:wrap}
+a.gobtn{display:inline-block;font-size:14px;font-weight:600;padding:10px 18px;border-radius:6px;
+  background:var(--accent);color:#fff;text-decoration:none;border:1px solid var(--accent);white-space:nowrap}
+:root[data-theme="dark"] a.gobtn{color:#0E151B}
+a.gobtn.alt{background:transparent;color:var(--accent);border-color:var(--rule-strong)}
+section.blk{margin-top:40px}
+section.blk > h2{margin:0 0 5px;font-size:25px;font-weight:600;letter-spacing:-.018em;
+  border-top:2px solid var(--ink);padding-top:14px}
+section.blk > .say{margin:0 0 18px;font-size:16px;color:var(--ink-2);max-width:72ch}
+.tool{background:var(--surface);border:1px solid var(--rule);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
+.tool > h3{margin:0;padding:13px 18px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;color:var(--ink-3);border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.tool .pad{padding:18px}
+.fld{margin-bottom:16px}
+.fld:last-child{margin-bottom:0}
+.fld label{display:block;font-size:15px;font-weight:600;margin-bottom:3px}
+.fld .q{font-size:13.5px;color:var(--ink-3);margin-bottom:7px;max-width:76ch}
+.fld input,.fld textarea,.fld select{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;
+  padding:9px 11px;border:1px solid var(--rule-strong);border-radius:6px;background:var(--surface);color:var(--ink)}
+.fld textarea{line-height:1.5;resize:vertical;min-height:76px}
+.fld input:focus-visible,.fld textarea:focus-visible,.fld select:focus-visible,button:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+.members{display:flex;flex-direction:column;gap:8px}
+.mrow{display:grid;grid-template-columns:1fr 1.4fr 32px;gap:9px;align-items:center}
+@media (max-width:640px){.mrow{grid-template-columns:1fr}}
+.mrow button{font:inherit;font-size:16px;line-height:1;padding:8px;border-radius:6px;border:1px solid var(--rule-strong);
+  background:transparent;color:var(--ink-3);cursor:pointer}
+.mrow button:hover{border-color:var(--stop);color:var(--stop)}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:10px 18px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.ghost{font:inherit;font-size:13.5px;padding:10px 15px;border-radius:6px;border:1px solid var(--rule-strong);
+  background:transparent;color:var(--ink-2);cursor:pointer}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.gauge{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin:18px 0}
+.gauge div{background:var(--surface);padding:12px 14px}
+.gauge .k{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+.gauge .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.gauge .v.bad{color:var(--stop)} .gauge .v.warn{color:var(--keep)} .gauge .v.good{color:var(--auto)}
+.coach{border-left:3px solid var(--accent);background:var(--surface-2);padding:13px 16px;border-radius:0 6px 6px 0;
+  font-size:14.5px;color:var(--ink-2);margin-top:14px}
+.coach .verd{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;margin-bottom:5px;color:var(--accent)}
+.coach.bad{border-left-color:var(--stop)} .coach.bad .verd{color:var(--stop)}
+.coach.warn{border-left-color:var(--keep)} .coach.warn .verd{color:var(--keep)}
+.coach.good{border-left-color:var(--auto)} .coach.good .verd{color:var(--auto)}
+.coach p{margin:0 0 8px} .coach p:last-child{margin:0} .coach strong{color:var(--ink)}
+.pull{border-left:3px solid var(--keep);padding:4px 0 4px 16px;margin:20px 0 0;font-size:17.5px;line-height:1.45;max-width:68ch}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 15px;max-width:74ch;border-left:3px solid var(--keep);padding-left:12px}
+#dlMsg{margin-top:11px;font-size:14.5px}
+#dlMsg.good{color:var(--auto);font-weight:600} #dlMsg.bad{color:var(--stop)}
+</style>
+
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <p class="eyebrow">INAI 5100 · Mini-Project 3</p>
+      <h1 style="font-size:25px">Learning Circle Planner</h1>
+    </div>
+    <div class="nav"><a class="gobtn alt" href="./break-it.html">Break It</a></div>
+  </div>
+</header>
+
+<div class="hero">
+  <p class="eyebrow">Interactive · Mini-Project 3</p>
+  <h1>Plan the circle</h1>
+  <p class="lede">A plan that describes only the good version is a proposal. This tool walks both halves — the circle itself, and the part where somebody objects. Fill it in, download it, and write your plan from it.</p>
+</div>
+
+<div class="wrap">
+  <section class="blk" style="margin-top:6px">
+    <h2>Part A · The circle</h2>
+    <p class="say">Start with the room. Everything else is easier once you know whose Tuesday you are changing.</p>
+    <div class="tool"><h3>Who and what</h3><div class="pad">
+      <div class="fld"><label for="org">The organization</label>
+        <div class="q">A real one. Your employer, a nonprofit you volunteer with, a business you own, a student group, a church.</div>
+        <input type="text" id="org" placeholder="e.g. Riverside Community Center, 6 staff and ~30 volunteers"></div>
+      <div class="fld"><label for="sponsor">Whose permission do you need?</label>
+        <div class="q">A role, not a department. This is the person your plan is written for.</div>
+        <input type="text" id="sponsor" placeholder="e.g. Director of Operations"></div>
+      <div class="fld"><label>Members</label>
+        <div class="q">Four to eight, by role, with a reason each is there. Mixed roles — a circle of only IT people produces IT answers to business problems.</div>
+        <div class="members" id="members"></div>
+        <div class="acts"><button class="ghost" id="addM">Add a member</button></div></div>
+      <div class="fld"><label for="convener">Who convenes it?</label>
+        <div class="q">One named role that owns scheduling and follow-up. This is the ownership piece.</div>
+        <input type="text" id="convener" placeholder="e.g. Volunteer Coordinator"></div>
+    </div></div>
+
+    <div class="tool" style="margin-top:16px"><h3>Cadence and session</h3><div class="pad">
+      <div class="fld"><label for="cadence">How often, and how long?</label>
+        <div class="q">Something you would defend to someone protecting their calendar.</div>
+        <select id="cadence">
+          <option value="">Choose…</option>
+          <option value="Weekly, 30 minutes">Weekly, 30 minutes</option>
+          <option value="Every two weeks, 40 minutes">Every two weeks, 40 minutes</option>
+          <option value="Every two weeks, 60 minutes">Every two weeks, 60 minutes</option>
+          <option value="Monthly, 60 minutes">Monthly, 60 minutes</option>
+          <option value="Monthly, 2 hours">Monthly, 2 hours</option>
+          <option value="Quarterly">Quarterly</option>
+        </select></div>
+      <div class="fld"><label for="session">What actually happens in a session?</label>
+        <div class="q">The shape of the time. Who talks, what gets shown, what gets decided. “Discuss AI tools” is not a format.</div>
+        <textarea id="session" placeholder="e.g. 5 min — what broke since last time. 20 min — one person demos something they tried, including what failed. 10 min — decide what we try next. 5 min — write it up."></textarea></div>
+      <div class="fld"><label for="share">Where do findings go?</label>
+        <div class="q">A specific place, and who outside the circle would ever find it there.</div>
+        <textarea id="share" placeholder="e.g. A one-page note in the shared drive after each session, linked from the staff wiki; a 5-minute slot at the monthly all-staff."></textarea></div>
+      <div class="fld"><label for="signal">How would you know it is working?</label>
+        <div class="q">Something you could observe in a few months — and that could come back negative. This is the question most plans dodge.</div>
+        <textarea id="signal" placeholder="e.g. By March, at least three processes outside the circle have been changed because of something it published. If zero, we stop."></textarea></div>
+    </div></div>
+  </section>
+
+  <section class="blk">
+    <h2>Part B · The hard part</h2>
+    <p class="say">Twenty of the hundred points live here, and it is the half most plans leave out. A plan that anticipates resistance is something someone can act on.</p>
+    <div class="tool"><h3>Obstacles and cost</h3><div class="pad">
+      <div class="fld"><label for="obstacle">What obstacle do you actually expect?</label>
+        <div class="q">A specific, likely one. Calendar pressure, a manager who sees it as unbilled time, a prior initiative that fizzled and left people cynical.</div>
+        <textarea id="obstacle" placeholder="e.g. We tried a “digital transformation committee” in 2024 that met twice and died. People will assume this is that."></textarea></div>
+      <div class="fld"><label for="opponent">Who could kill this, and why might they?</label>
+        <div class="q">A named role, not “management” — and give them a legitimate reason, not a strawman.</div>
+        <textarea id="opponent" placeholder="e.g. The Program Director, because her team is already short-staffed and every hour in a meeting is an hour not spent with clients. That is a fair objection."></textarea></div>
+      <div class="fld"><label for="cost">What does it cost, honestly?</label>
+        <div class="q">Hours per person per month, including the convener's preparation time. Approximate is fine; vague is not.</div>
+        <input type="text" id="cost" placeholder="e.g. 1.5 hrs/month per member, 4 hrs/month for the convener — about 13 hours a month total"></div>
+      <div class="fld"><label for="half">What would you drop at half the time?</label>
+        <div class="q">Shows you know which part is the core and which parts are decoration.</div>
+        <textarea id="half" placeholder="e.g. Drop the write-up to three bullet points and cut the demo to one person. Keep the meeting itself — the cadence is the thing that works."></textarea></div>
+      <div class="fld"><label for="privacy">What is your data and privacy line?</label>
+        <div class="q">What may and may not go into AI tools, given your organization's actual obligations.</div>
+        <textarea id="privacy" placeholder="e.g. No client names, no case notes, no donor records. Anything demoed uses invented data that matches the real shape."></textarea></div>
+    </div></div>
+
+    <div class="gauge">
+      <div><div class="k">Members</div><div class="v" id="gMem">0</div></div>
+      <div><div class="k">Part A complete</div><div class="v" id="gA">0<span style="font-size:14px;color:var(--ink-3)">/8</span></div></div>
+      <div><div class="k">Part B complete</div><div class="v" id="gB">0<span style="font-size:14px;color:var(--ink-3)">/5</span></div></div>
+    </div>
+    <div id="coach"></div>
+  </section>
+
+  <section class="summary">
+    <h2>Download your plan outline</h2>
+    <p class="lede">This is not the plan — it is everything the plan needs, in order. Write from it.</p>
+    <div style="display:grid;grid-template-columns:1fr 160px;gap:10px;margin-bottom:16px">
+      <div><label for="who" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Your name</label>
+        <input type="text" id="who" placeholder="Last, First" style="width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);color:var(--ink)"></div>
+      <div><label for="sect" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Section</label>
+        <select id="sect" style="width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);color:var(--ink)"><option value="">Choose…</option><option value="001">001</option><option value="OL1">OL1</option></select></div>
+    </div>
+    <p class="privacy">Nothing here is sent anywhere. Your work stays in your browser until you download it. Describe your organization in general terms — no client names, patient information, or anything confidential.</p>
+    <div class="acts">
+      <button class="go" id="dlBtn">Download outline</button>
+      <button class="ghost" id="cpBtn">Copy instead</button>
+    </div>
+    <p id="dlMsg"></p>
+  </section>
+
+  <footer><span>INAI 5100 · AI in Business Operations · Dr. Lucy Zhang</span>
+  <span class="mono">Mini-Project 3 · Planner</span></footer>
+</div>
+
+<script>
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let members=[{role:"",why:""},{role:"",why:""},{role:"",why:""},{role:"",why:""}];
+function renderM(){
+  document.getElementById("members").innerHTML = members.map((m,i)=>`
+    <div class="mrow">
+      <input type="text" data-i="${i}" data-k="role" value="${esc(m.role)}" placeholder="Role">
+      <input type="text" data-i="${i}" data-k="why" value="${esc(m.why)}" placeholder="Why this role is in the room">
+      <button data-del="${i}" aria-label="Remove member">×</button>
+    </div>`).join("");
+}
+renderM();
+document.getElementById("members").addEventListener("input", e=>{
+  const el=e.target.closest("[data-i]"); if(!el) return;
+  members[+el.dataset.i][el.dataset.k]=el.value; gauge(); persist();
+});
+document.getElementById("members").addEventListener("click", e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  if(members.length<=1) return;
+  members.splice(+b.dataset.del,1); renderM(); gauge(); persist();
+});
+document.getElementById("addM").addEventListener("click", ()=>{
+  if(members.length>=8) return;
+  members.push({role:"",why:""}); renderM(); gauge(); persist();
+});
+
+const A=["org","sponsor","convener","cadence","session","share","signal"];
+const B=["obstacle","opponent","cost","half","privacy"];
+const val=id=>(document.getElementById(id).value||"").trim();
+function gauge(){
+  const named=members.filter(m=>m.role.trim()).length;
+  const withWhy=members.filter(m=>m.role.trim()&&m.why.trim()).length;
+  const aDone=A.filter(val).length + (named>=4?1:0);
+  const bDone=B.filter(val).length;
+  const gm=document.getElementById("gMem"); gm.textContent=named;
+  gm.className="v "+(named>=4&&named<=8?"good":(named?"warn":"bad"));
+  document.getElementById("gA").innerHTML=aDone+'<span style="font-size:14px;color:var(--ink-3)">/8</span>';
+  const gb=document.getElementById("gB"); gb.innerHTML=bDone+'<span style="font-size:14px;color:var(--ink-3)">/5</span>';
+  gb.className="v "+(bDone===5?"good":(bDone>=3?"warn":"bad"));
+
+  const out=[];
+  if(!val("org")) out.push(['bad','Start with the organization',
+    'Everything else depends on it. A plan written about an invented company has no obstacles to name, and obstacles are worth twenty of the hundred points.']);
+  if(named && (named<4||named>8)) out.push(['warn','Membership size',
+    named<4 ? 'Fewer than four people is a conversation, not a circle — it dies when one person is busy.' : 'More than eight and people stop speaking. Split it or trim it.']);
+  if(named>=4 && withWhy<named) out.push(['warn','Say why each role is there',
+    'A list of job titles is not a membership rationale. The reason each role is in the room is what shows you thought about mixing perspectives.']);
+  if(val("cadence")==="Quarterly"||val("cadence")==="Monthly, 2 hours") out.push(['warn','That cadence rarely survives',
+    'Quarterly changes nothing — people forget between sessions. A long monthly meeting is the first thing cancelled in a busy month. Short and frequent beats long and rare.']);
+  if(val("signal") && !/\b(by|within|month|week|per|at least|number|count|three|two|zero|stop)\b/i.test(val("signal")))
+    out.push(['warn','Make the signal observable',
+    'Could this come back negative? “Increased AI adoption” cannot be observed and cannot fail. Give it a time frame and a number, including what would tell you to stop.']);
+  if(val("opponent") && /^\s*(management|leadership|the company|everyone|no one|nobody)\b/i.test(val("opponent")))
+    out.push(['bad','Name a role, not a department',
+    '“Management” is not a person who can object. Full credit needs a specific role and a legitimate reason they might say no — not a strawman who dislikes progress.']);
+  if(bDone===0 && aDone>=5) out.push(['bad','Part B is empty',
+    'A plan with a perfect Part A and an empty Part B caps around 70. The obstacles are the largest single criterion in the rubric and the most commonly skipped.']);
+  if(!out.length && aDone===8 && bDone===5) out.push(['good','Ready to write',
+    'Both halves are filled in and the answers are specific. Download the outline and write the plan from it — 1,200 to 1,500 words, in this order.']);
+  document.getElementById("coach").innerHTML = out.map(([c,t,p])=>
+    `<div class="coach ${c}"><div class="verd">${esc(t)}</div><p>${esc(p)}</p></div>`).join("");
+}
+[...A,...B].forEach(id=>{const el=document.getElementById(id);
+  el.addEventListener("input",()=>{gauge();persist();}); el.addEventListener("change",()=>{gauge();persist();});});
+gauge();
+
+function ghDownload(f,t){try{const b=new Blob([t],{type:"text/plain;charset=utf-8"});
+  const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=f;a.style.display="none";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),1500);return true;}catch(e){return false;}}
+function ghCopy(t,m,ok){const d=o=>{m.className=o?"good":"bad";
+  m.textContent=o?ok:"Couldn't copy automatically. Select the text and copy it manually.";};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>d(true),()=>d(false));}
+  else{try{const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");
+    ta.style.position="absolute";ta.style.left="-9999px";document.body.appendChild(ta);ta.select();
+    const o=document.execCommand("copy");document.body.removeChild(ta);d(o);}catch(e){d(false);}}}
+function asText(){
+  const g=id=>val(id)||"(not filled in)";
+  return `INAI 5100 - Mini-Project 3 plan outline
+Name: ${val("who")||"(no name)"}    Section: ${document.getElementById("sect").value||"(no section)"}
+
+PART A - THE CIRCLE
+
+Organization
+${g("org")}
+
+Written for
+${g("sponsor")}
+
+Members
+${members.filter(m=>m.role.trim()).map(m=>"  - "+m.role+(m.why?" — "+m.why:" — (no reason given)")).join("\n")||"  (none listed)"}
+
+Convener
+${g("convener")}
+
+Cadence
+${g("cadence")}
+
+What happens in a session
+${g("session")}
+
+Where findings go
+${g("share")}
+
+How we would know it is working
+${g("signal")}
+
+PART B - THE HARD PART
+
+Obstacle expected
+${g("obstacle")}
+
+Who could kill this, and why
+${g("opponent")}
+
+Cost
+${g("cost")}
+
+What we would drop at half the time
+${g("half")}
+
+Data and privacy line
+${g("privacy")}
+`;
+}
+document.getElementById("dlBtn").addEventListener("click",()=>{
+  const m=document.getElementById("dlMsg");m.className="";m.textContent="";
+  const n=val("who"); if(!n){m.className="bad";m.textContent="Add your name first.";document.getElementById("who").focus();return;}
+  if(!document.getElementById("sect").value){m.className="bad";m.textContent="Choose your section.";return;}
+  const safe=n.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"mp3-outline";
+  if(ghDownload("mp3-outline-"+safe+".txt",asText())){m.className="good";m.textContent="Downloaded. Write your plan from it.";}
+  else{m.className="bad";m.textContent="Your browser blocked the download. Use “Copy instead”.";}
+});
+document.getElementById("cpBtn").addEventListener("click",()=>{
+  const m=document.getElementById("dlMsg");m.className="";m.textContent="";
+  if(!val("who")){m.className="bad";m.textContent="Add your name first.";document.getElementById("who").focus();return;}
+  ghCopy(asText(),m,"Copied. Paste it into your draft.");
+});
+const LK="inai5100-lcplanner";
+function persist(){try{const o={members};[...A,...B,"who","sect"].forEach(k=>{
+  const el=document.getElementById(k); if(el) o[k]=el.value;});
+  localStorage.setItem(LK,JSON.stringify(o));}catch(e){}}
+(function restore(){let d;try{d=JSON.parse(localStorage.getItem(LK)||"");}catch(e){return;}
+  if(!d)return; if(Array.isArray(d.members)&&d.members.length){members=d.members;renderM();}
+  [...A,...B,"who","sect"].forEach(k=>{const el=document.getElementById(k); if(el&&d[k]!==undefined) el.value=d[k];});
+  gauge();})();
+["who","sect"].forEach(id=>{const el=document.getElementById(id);
+  el.addEventListener("input",persist);el.addEventListener("change",persist);});
+</script>
+</body>
+</html>
