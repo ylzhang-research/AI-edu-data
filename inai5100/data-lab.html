@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Build an update-or-create scenario one decision at a time and watch what a search really returns: zero rows, one row, or many.">
+<title>The Data Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+
+
+:root{
+  --ink:#16202B; --ink-2:#3D4E5C; --ink-3:#6B7F8D;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EFF1;
+  --rule:#D3DDE2; --rule-strong:#B4C3CB;
+  --accent:#0F6E6E; --accent-2:#0B5555; --accent-soft:#E0EFEE;
+  --keep:#9C5A00; --keep-soft:#FBEEDC;
+  --auto:#2C6349; --auto-soft:#E2EFE8;
+  --stop:#9B2C2C; --stop-soft:#F8E7E7;
+  --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px -12px rgba(22,32,43,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+    --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+    --rule:#2A3742; --rule-strong:#3B4B58;
+    --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+    --keep:#D89A4A; --keep-soft:#31251A;
+    --auto:#68B08C; --auto-soft:#16281F;
+    --stop:#DE8585; --stop-soft:#301A1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+  --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+  --rule:#2A3742; --rule-strong:#3B4B58;
+  --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+  --keep:#D89A4A; --keep-soft:#31251A;
+  --auto:#68B08C; --auto-soft:#16281F;
+  --stop:#DE8585; --stop-soft:#301A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast-in{max-width:1200px;margin:0 auto;padding:22px 24px 20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-size:29px;line-height:1.14;margin:0;font-weight:600;letter-spacing:-.017em;text-wrap:balance}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:15px;max-width:60ch}
+.idbox{display:flex;flex-direction:column;gap:5px;min-width:214px}
+.idbox label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.idrow{display:flex;gap:8px}
+input[type=text],select{
+  font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);
+  color:var(--ink);min-width:0;width:100%}
+input[type=text]:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---------- progress rail ---------- */
+.rail{background:var(--surface-2);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40}
+.rail-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;gap:26px;
+  align-items:center;overflow-x:auto}
+.rail-grp{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.rail-name{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pip{width:22px;height:6px;border-radius:1px;background:var(--rule-strong);transition:background .18s}
+.pip.done{background:var(--auto)}
+.pip.miss{background:var(--stop)}
+.pip.here{background:var(--accent)}
+.rail-score{margin-left:auto;flex:0 0 auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;margin:26px 0 0;box-shadow:var(--shadow)}
+.intro h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15px;max-width:74ch}
+.intro p:last-child{margin-bottom:0}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.howto div{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.howto b{display:block;font-size:13.5px;margin-bottom:2px}
+.howto span{font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- case ---------- */
+.case{margin-top:34px;scroll-margin-top:64px}
+.case-head{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:18px}
+.case-kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.case-head h2{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.case-head .org{margin:4px 0 0;color:var(--ink-3);font-size:14px;
+  font-family:"IBM Plex Mono",monospace}
+.case-body{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:920px){.case-body{grid-template-columns:1fr}}
+
+/* dossier */
+.dossier{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:921px){.dossier{position:sticky;top:60px}}
+.dossier h3{margin:0;padding:12px 16px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.dossier .ctx{padding:14px 16px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.maptable{width:100%;border-collapse:collapse;font-size:13px}
+.maptable th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 10px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.maptable td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.maptable tr:last-child td{border-bottom:none}
+.maptable td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;width:26px}
+.maptable td.w{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;font-size:12px}
+.maptable tr.waits{background:var(--keep-soft)}
+.maptable tr.waits td.w{color:var(--keep);font-weight:600}
+.dossier .note{padding:12px 16px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--rule);
+  background:var(--surface-2)}
+
+/* decisions */
+.decks{display:flex;flex-direction:column;gap:16px}
+.dec{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:18px 20px;box-shadow:var(--shadow)}
+.dec.locked{opacity:.55}
+.dec-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dec h4{margin:5px 0 4px;font-size:17.5px;font-weight:600;letter-spacing:-.01em;line-height:1.32;text-wrap:balance}
+.dec .hint{margin:0 0 13px;font-size:14px;color:var(--ink-2)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:13px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;
+  font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);
+  border-radius:4px;margin-top:2px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* verdict */
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:13px 16px;border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{color:var(--ink);font-weight:600}
+
+/* ---------- summary ---------- */
+.summary{margin-top:44px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:8px;padding:26px;box-shadow:var(--shadow)}
+.summary h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.summary .lede{margin:0 0 20px;color:var(--ink-2);font-size:15px;max-width:70ch}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.reflect{margin-bottom:20px}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;
+  padding:11px 12px;border:1px solid var(--rule-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);resize:vertical;min-height:92px}
+textarea:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#submitMsg{margin-top:12px;font-size:14.5px}
+#submitMsg.good{color:var(--auto);font-weight:600}
+#submitMsg.bad{color:var(--stop)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+
+
+.hero{max-width:1200px;margin:0 auto;padding:40px 24px 24px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:18ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:66ch}
+.nav{display:flex;gap:9px;flex-wrap:wrap}
+a.gobtn{display:inline-block;font-size:14px;font-weight:600;padding:10px 18px;border-radius:6px;
+  background:var(--accent);color:#fff;text-decoration:none;border:1px solid var(--accent);white-space:nowrap}
+:root[data-theme="dark"] a.gobtn{color:#0E151B}
+a.gobtn.alt{background:transparent;color:var(--accent);border-color:var(--rule-strong)}
+a.gobtn.alt:hover{background:var(--accent-soft);border-color:var(--accent)}
+section.blk{margin-top:40px;scroll-margin-top:20px}
+section.blk > h2{margin:0 0 5px;font-size:25px;font-weight:600;letter-spacing:-.018em;
+  border-top:2px solid var(--ink);padding-top:14px}
+section.blk > .say{margin:0 0 18px;font-size:16px;color:var(--ink-2);max-width:72ch}
+.pull{border-left:3px solid var(--accent);padding:4px 0 4px 16px;margin:20px 0 0;
+  font-size:17.5px;line-height:1.45;max-width:68ch}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* incident */
+.inc{background:var(--surface);border:1px solid var(--rule);border-radius:8px;box-shadow:var(--shadow);
+  overflow:hidden;margin-bottom:18px}
+.inc-head{padding:14px 18px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.inc-n{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;color:var(--accent)}
+.inc-head h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.012em}
+.inc .pad{padding:18px}
+.sym{border-left:3px solid var(--keep);background:var(--keep-soft);padding:12px 15px;border-radius:0 6px 6px 0;
+  margin-bottom:16px}
+.sym .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  font-weight:600;color:var(--keep);margin-bottom:4px}
+.sym p{margin:0;font-size:15px;color:var(--ink)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media (max-width:820px){.panels{grid-template-columns:1fr}}
+.panel{border:1px solid var(--rule);border-radius:7px;overflow:hidden}
+.panel h4{margin:0;padding:9px 13px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.11em;
+  text-transform:uppercase;font-weight:600;color:var(--ink-3);border-bottom:1px solid var(--rule);
+  background:var(--surface-2)}
+.kv{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.75;padding:11px 13px;margin:0;
+  white-space:pre-wrap;color:var(--ink)}
+.kv .k{color:var(--ink-3)}
+.kv .miss{color:var(--stop);font-weight:600}
+.kv .ok{color:var(--auto)}
+.errline{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--stop-soft);
+  color:var(--stop);padding:9px 13px;border-radius:5px;margin:0 0 16px;border:1px solid var(--stop)}
+.errline.none{background:var(--auto-soft);color:var(--auto);border-color:var(--auto)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;font:inherit;
+  color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);border-radius:4px;
+  margin-top:2px;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;border:1px solid var(--rule-strong);
+  background:transparent;color:var(--ink-2);cursor:pointer}
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);padding:13px 16px;
+  border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)} .verdict p:last-child{margin:0}
+.verdict strong{color:var(--ink)}
+.fixrow{margin-top:13px;padding-top:12px;border-top:1px solid var(--rule)}
+.fixrow .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  font-weight:600;color:var(--accent);margin-bottom:4px}
+.fixrow p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:17px 19px;box-shadow:var(--shadow)}
+.card .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600}
+.card h4{margin:5px 0 6px;font-size:17px;font-weight:600}
+.card p{margin:0;font-size:14px;color:var(--ink-2)}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 15px;max-width:74ch;border-left:3px solid var(--keep);padding-left:12px}
+#dlMsg{margin-top:11px;font-size:14.5px}
+#dlMsg.good{color:var(--auto);font-weight:600} #dlMsg.bad{color:var(--stop)}
+.idbox2{display:grid;grid-template-columns:1fr 160px;gap:10px;margin-bottom:16px}
+@media (max-width:560px){.idbox2{grid-template-columns:1fr}}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;padding:11px 12px;
+  border:1px solid var(--rule-strong);border-radius:6px;background:var(--surface);color:var(--ink);
+  resize:vertical;min-height:88px}
+input[type=text],select{font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);color:var(--ink);width:100%}
+
+
+/* ---------- handoff audit additions ---------- */
+.hero{max-width:1200px;margin:0 auto;padding:38px 24px 20px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:20ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:68ch}
+
+.told{background:var(--keep-soft);border:1px solid var(--rule);border-left:4px solid var(--keep);
+  border-radius:0 7px 7px 0;padding:15px 18px;margin-bottom:18px}
+.told .who{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--keep);font-weight:600;margin-bottom:5px}
+.told p{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.told p em{font-style:italic}
+
+.specs{width:100%;border-collapse:collapse;font-size:13px}
+.specs th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 12px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  white-space:nowrap;width:36%;vertical-align:top}
+.specs td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+.specs tr:last-child th,.specs tr:last-child td{border-bottom:none}
+.specs td .mono{color:var(--ink);font-size:12.5px}
+.chain{display:flex;flex-direction:column;gap:5px}
+.chain span{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
+  padding-left:14px;position:relative}
+.chain span::before{content:"\2193";position:absolute;left:0;top:-1px;color:var(--ink-3)}
+.chain span:first-child::before{content:"\25B6";font-size:9px;top:2px}
+.empty{color:var(--ink-3);font-style:italic}
+
+/* requisition list */
+.req{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.req .opt .txt{font-size:14.5px}
+.opt.must{border-color:var(--stop);background:var(--stop-soft)}
+.opt.must .box{background:var(--stop);border-color:var(--stop)}
+.opt.gotmust{border-color:var(--auto);background:var(--auto-soft)}
+.opt.gotmust .box{background:var(--auto);border-color:var(--auto)}
+.opt.noise{border-color:var(--rule);background:var(--surface-2);opacity:.78}
+.opt.noise .box{background:var(--ink-3);border-color:var(--ink-3)}
+.opt .tagline{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  letter-spacing:.11em;text-transform:uppercase;font-weight:600;margin-top:6px}
+.opt.gotmust .tagline{color:var(--auto)}
+.opt.must .tagline{color:var(--stop)}
+.opt.noise .tagline{color:var(--ink-3)}
+.opt.useful .tagline{color:var(--keep)}
+.opt.useful{border-color:var(--keep);background:var(--keep-soft)}
+.opt.useful .box{background:var(--keep);border-color:var(--keep)}
+.opt .because{display:block;font-size:13px;color:var(--ink-2);margin-top:4px;line-height:1.45}
+
+.counter{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-3);
+  margin-bottom:12px}
+.counter b{color:var(--ink);font-weight:600}
+
+.fixrow{border-top:1px solid var(--rule);margin-top:11px;padding-top:10px}
+.fixrow .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:4px}
+.fixrow p{margin:0;font-size:14.5px;color:var(--ink-2)}
+
+/* record builder */
+.rec{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-bottom:6px}
+.rec .fld label{display:block;font-size:14.5px;font-weight:600;margin-bottom:3px}
+.rec .fld .q{font-size:13px;color:var(--ink-3);margin-bottom:7px;line-height:1.45}
+.rec .fld textarea{min-height:76px}
+.carry{margin-top:26px;border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:15px 18px;border-radius:0 7px 7px 0}
+.carry .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:5px}
+.carry p{margin:0;font-size:15.5px;color:var(--ink);max-width:76ch}
+
+
+
+/* ---------- data lab additions ---------- */
+.hero{max-width:1200px;margin:0 auto;padding:38px 24px 20px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:20ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:68ch}
+
+.panes{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:980px){.panes{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--rule);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+.pane > h3{margin:0;padding:11px 15px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2);
+  display:flex;justify-content:space-between;gap:10px;align-items:center}
+.pane > h3 .cnt{color:var(--accent)}
+.dt{width:100%;border-collapse:collapse;font-size:12.5px}
+.dt th{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;font-weight:600;padding:8px 10px;
+  border-bottom:1px solid var(--rule);background:var(--surface-2);white-space:nowrap}
+.dt td{padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+.dt tr:last-child td{border-bottom:none}
+.dt td.k{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);text-align:center;width:30px;
+  font-variant-numeric:tabular-nums}
+.dt td.m{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink);overflow-wrap:anywhere}
+.dt tr.chg td{background:var(--keep-soft)}
+.dt tr.chg td.k{color:var(--keep);font-weight:600}
+.dt tr.new td{background:var(--auto-soft)}
+.dt tr.new td.k{color:var(--auto);font-weight:600}
+.dt .ws{background:var(--stop-soft);border-radius:2px;padding:0 1px}
+.dt .note{color:var(--ink-3);font-style:italic;font-size:11.5px}
+
+/* step cards */
+.step{margin-top:30px;background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;box-shadow:var(--shadow);scroll-margin-top:66px}
+.step.locked{opacity:.45;pointer-events:none;filter:saturate(.4)}
+.step-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.step h3{margin:5px 0 9px;font-size:21px;font-weight:600;letter-spacing:-.014em;line-height:1.28}
+.step .teach{margin:0 0 15px;font-size:15px;color:var(--ink-2);max-width:78ch}
+.step .teach em{color:var(--ink)}
+.lockmsg{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);margin:10px 0 0}
+
+/* run results */
+.res{margin-top:18px;border-top:1px solid var(--rule);padding-top:16px}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.strip div{background:var(--surface);padding:10px 12px}
+.strip .k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.strip .v{font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px;letter-spacing:-.02em}
+.strip .v.bad{color:var(--stop)} .strip .v.good{color:var(--auto)} .strip .v.warn{color:var(--keep)}
+
+.runtbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;table-layout:fixed}
+.runtbl th{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;font-weight:600;padding:8px 10px;
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.runtbl td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+.runtbl tr:last-child td{border-bottom:none}
+.runtbl td.k{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);text-align:center;font-variant-numeric:tabular-nums}
+.runtbl td.f{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink);overflow-wrap:anywhere}
+.runtbl col.c0{width:34px} .runtbl col.c1{width:150px} .runtbl col.c2{width:150px}
+.runtbl col.c4{width:46px} .runtbl col.c5{width:84px}
+@media (max-width:860px){
+  .runtbl col.c1{width:110px} .runtbl col.c2{width:104px} .runtbl{font-size:12px}
+}
+.pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;font-weight:600;padding:3px 7px;border-radius:3px;white-space:nowrap}
+.pill.right{background:var(--auto-soft);color:var(--auto)}
+.pill.partial{background:var(--keep-soft);color:var(--keep)}
+.pill.wrong{background:var(--stop-soft);color:var(--stop)}
+
+.verd{border-left:3px solid var(--accent);background:var(--surface-2);padding:13px 16px;border-radius:0 6px 6px 0}
+.verd p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verd p:last-child{margin-bottom:0}
+.verd strong{color:var(--ink);font-weight:600}
+.verd .onward{border-top:1px solid var(--rule);margin-top:11px;padding-top:10px;font-size:14px;color:var(--ink)}
+
+/* free play */
+.cfggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:18px}
+.cfggrid label{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px;color:var(--ink-2)}
+.carry{margin-top:26px;border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:15px 18px;border-radius:0 7px 7px 0}
+.carry .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:5px}
+.carry p{margin:0;font-size:15.5px;color:var(--ink);max-width:76ch}
+
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <p class="eyebrow">INAI 5100 &middot; Week 9 &middot; Reading Before You Write</p>
+      <h1 style="font-size:25px">Week 9 &middot; Stored data</h1>
+    </div>
+    <div class="nav">
+      <a class="gobtn alt" href="./data-cases.html">The Data Cases</a>
+      <a class="gobtn alt" href="./handoff-audit.html">Handoff Audit</a>
+      <a class="gobtn alt" href="./router-lab.html">Router Lab</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <p class="eyebrow">Tutorial &middot; Week 9</p>
+  <h1>The Data Lab</h1>
+  <p class="lede">Five form submissions are about to be written into a contact sheet. Each one fails in a different way, and none of the failures raises an error. Build the scenario one decision at a time and watch the sheet after every run.</p>
+</div>
+
+<div class="rail"><div class="rail-in" id="rail"></div></div>
+
+<div class="wrap">
+
+  <section class="blk" style="margin-top:6px">
+    <h2>Every write starts with a read</h2>
+    <p class="say">Until now your scenarios have moved data forward: a trigger fires, something happens, something gets sent. The moment a scenario has to <em>update</em> something that already exists, it has to find it first &mdash; and the finding is where almost everything goes wrong. Make's documentation is clear about the mechanics; what it cannot tell you is what your data actually looks like.</p>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--stop)">
+        <div class="lbl" style="color:var(--stop)">What people assume</div>
+        <h4>A search returns the record</h4>
+        <p>One lookup, one row, one update. This is true of your test data, because you test with records you know are there.</p>
+      </div>
+      <div class="card" style="border-color:var(--auto)">
+        <div class="lbl" style="color:var(--auto)">What a search returns</div>
+        <h4>Zero rows, one row, or many</h4>
+        <p>All three are normal, none of them is an error, and your scenario has to have an answer for each. Most scenarios have an answer for exactly one.</p>
+      </div>
+    </div>
+    <p class="pull">Nothing in this lab errors. Every run you are about to do finishes with a clean history.</p>
+  </section>
+
+  <section class="blk">
+    <h2>The data</h2>
+    <p class="say">On the left, the Contacts sheet as it stands this morning. On the right, five submissions waiting to be written into it. Read both before you touch anything &mdash; every decision in this lab is really a question about what you see here.</p>
+    <div class="panes">
+      <div class="pane">
+        <h3><span>Contacts &mdash; the sheet</span><span class="cnt" id="sheetCnt">5 rows</span></h3>
+        <table class="dt"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Plan</th><th>Last seen</th></tr></thead>
+        <tbody id="sheetBefore"></tbody></table>
+      </div>
+      <div class="pane">
+        <h3><span>Incoming &mdash; five submissions</span><span class="cnt">5 records</span></h3>
+        <table class="dt"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Plan</th></tr></thead>
+        <tbody id="queueTbl"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2>Build it, one decision at a time</h2>
+    <p class="say">Each step adds one setting and runs all five records against the sheet. Settings you have not reached yet stay at their naive default, which is the point &mdash; you are watching a scenario become correct, not starting from a correct one.</p>
+    <div id="steps"></div>
+  </section>
+
+  <section class="blk" id="freeplay">
+    <h2>Run anything</h2>
+    <p class="say">All five settings, unlocked. Change one at a time and watch which record breaks &mdash; that is the fastest way to learn what each setting is actually protecting you from.</p>
+    <div class="cfggrid" id="cfgGrid"></div>
+    <div class="acts"><button class="go" id="fpRun">Run the queue</button>
+      <button class="ghost" id="fpBest">Set everything correctly</button>
+      <button class="ghost" id="fpWorst">Reset to the naive version</button></div>
+    <div id="fpRes"></div>
+  </section>
+
+  <section class="summary" id="saveblock">
+    <h2>What you take to your own scenario</h2>
+    <p class="lede">Answer these two about the data store your Mini-Project 2 scenario touches &mdash; or the one you expect to use for Mini-Project 4. Then download the whole thing and bring it to class.</p>
+    <div class="tally">
+      <div><div class="k">Steps completed</div><div class="v" id="tSteps">0<span style="font-size:15px;color:var(--ink-3)">/5</span></div></div>
+      <div><div class="k">Best run</div><div class="v" id="tBest">0<span style="font-size:15px;color:var(--ink-3)">/5</span></div></div>
+      <div><div class="k">Runs</div><div class="v" id="tRuns">0</div></div>
+      <div><div class="k">Errors raised</div><div class="v">0</div></div>
+    </div>
+    <div class="idbox2">
+      <div><label for="who" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Your name</label>
+        <input type="text" id="who" placeholder="Last, First" autocomplete="name"></div>
+      <div><label for="sect" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Section</label>
+        <select id="sect"><option value="">Choose&hellip;</option><option value="001">001 &mdash; in class</option><option value="OL1">OL1 &mdash; online</option></select></div>
+    </div>
+    <div class="reflect">
+      <label for="r1">What would you match on, and why?</label>
+      <p class="q">Name the field, and say what would have to go wrong in your data for that field to fail you. If you do not have a stable identifier, say so &mdash; that is a finding, not a gap.</p>
+      <textarea id="r1" placeholder="I would match on&hellip; It would fail if&hellip;"></textarea>
+    </div>
+    <div class="reflect">
+      <label for="r2">Which of the five records is most likely to turn up in your data?</label>
+      <p class="q">The renamed person, the duplicate, the brand-new record, the untrimmed paste, or the blank field. Say which, and what it would cost you if nobody noticed for a month.</p>
+      <textarea id="r2" placeholder="The one I would actually hit is&hellip; If nobody noticed for a month&hellip;"></textarea>
+    </div>
+    <p class="privacy">Nothing on this page is sent anywhere. Your work stays in your browser until you download it. Keep your answers general &mdash; no customer names, no account numbers, nothing confidential to your employer. Never type a password, API key, or client secret into this page or any other.</p>
+    <div class="acts">
+      <button class="go" id="dlBtn">Download your lab notes</button>
+      <button class="ghost" id="cpBtn">Copy instead</button>
+    </div>
+    <p id="dlMsg"></p>
+    <div class="carry">
+      <div class="tag">The one thing to carry</div>
+      <p>A search returns zero rows, one row, or many. A scenario that only handles &ldquo;one&rdquo; is not finished &mdash; it is untested.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>INAI 5100 &middot; AI in Business Operations &middot; Dr. Lucy Zhang</span>
+    <span class="mono">Week 9 &middot; The Data Lab</span>
+  </footer>
+</div>
+
+<script>
+/* ---------- the data ---------- */
+const SHEET0 = [
+ {row:1, name:"Dana Okafor",   email:"dana.okafor@example.org",   plan:"Standard", last:"2026-09-02"},
+ {row:2, name:"Marcus Webb",   email:"m.webb@example.org",        plan:"Premium",  last:"2026-08-19"},
+ {row:3, name:"Priya Raman",   email:"priya.raman@example.org",   plan:"Standard", last:"2026-09-28"},
+ {row:4, name:"Marcus Webb",   email:"m.webb@example.org",        plan:"Standard", last:"2026-07-11"},
+ {row:5, name:"Leah Fontaine", email:"leah.fontaine@example.org", plan:"Premium",  last:"2026-09-30"}
+];
+
+const QUEUE = [
+ {n:1, name:"Dana Okafor-Reyes", email:"dana.okafor@example.org",   plan:"Premium",  note:"Changed her name since she signed up."},
+ {n:2, name:"Marcus Webb",       email:"m.webb@example.org",        plan:"Premium",  note:"Somebody entered Marcus twice, a year apart."},
+ {n:3, name:"Tomás Herrera",email:"tomas.herrera@example.org", plan:"Standard", note:"Brand new. Not in the sheet at all."},
+ {n:4, name:"Priya Raman",       email:" Priya.Raman@example.org ", plan:"Premium",  note:"Pasted from an email client. Leading space, capitals."},
+ {n:5, name:"Leah Fontaine",     email:"",                          plan:"Standard", note:"The form's email field was not required."}
+];
+
+/* what SHOULD happen to each incoming record */
+const TRUTH = {
+ 1:{act:"update", row:1},
+ 2:{act:"hold"},            // two rows for one person: a human decides
+ 3:{act:"create"},
+ 4:{act:"update", row:3},
+ 5:{act:"hold"}             // no key: cannot be matched, must not be guessed
+};
+
+const norm = s => String(s == null ? "" : s).trim().toLowerCase();
+
+function keyValue(key, rec){
+  if(key === "row")  return rec.n;
+  if(key === "name") return rec.name;
+  return rec.email;                     // "email" and "emailNorm"
+}
+
+function search(key, rec, sheet){
+  if(key === "row")       return sheet.filter(r => r.row === rec.n);
+  if(key === "name")      return sheet.filter(r => r.name === rec.name);
+  if(key === "email")     return sheet.filter(r => r.email === rec.email);
+  /* emailNorm */          return sheet.filter(r => norm(r.email) === norm(rec.email));
+}
+
+/* cfg: {key, nores, after, many, guard} */
+function run(cfg){
+  const sheet = SHEET0.map(r => ({...r}));
+  const rows  = [];
+  const review= [];
+  let ops = 0, nextRow = sheet.length + 1;
+
+  for(const rec of QUEUE){
+    const kv = keyValue(cfg.key, rec);
+    const blank = String(kv == null ? "" : kv).trim() === "";
+    const t = TRUTH[rec.n];
+    let out, hit = null, verdict, detail;
+
+    if(cfg.guard && blank){
+      out = "held"; detail = "Filtered out before the search — the key was blank.";
+      review.push({rec, why:"blank key"});
+      rows.push(mk(rec, "not run", out, detail, grade(out, hit, t), 0));
+      continue;
+    }
+
+    ops += 1;                                   // the search itself
+    let found = search(cfg.key, rec, sheet);
+    let opsHere = 1;
+
+    if(found.length === 0){
+      if(!cfg.nores){
+        out = "dropped";
+        detail = "The search returned nothing, so the route stopped here. No error, no record, nothing in the history to look at.";
+      } else if(cfg.after === "updateOnly"){
+        out = "errored";
+        detail = "The route continued, but the update module was handed a row number that does not exist. Make raises a missing-data error.";
+      } else {
+        out = "created"; opsHere += 1; ops += 1;
+        const r = {row:nextRow++, name:rec.name, email:String(rec.email).trim(), plan:rec.plan, last:"2026-10-13", added:true};
+        sheet.push(r); hit = r;
+        detail = "No match, so the router sent it down the not-found branch and added a row.";
+      }
+    } else if(found.length === 1){
+      opsHere += 1; ops += 1;
+      hit = found[0];
+      apply(hit, rec);
+      detail = `The search returned one row (row ${hit.row}), and the update wrote to it.`;
+    } else {
+      if(cfg.many === "each"){
+        opsHere += found.length; ops += found.length;
+        found.forEach(r => apply(r, rec));
+        hit = found[0];
+        out = "updatedMany";
+        detail = `The search returned ${found.length} rows, so everything after it ran ${found.length} times. Both rows were written. The duplicate is still there.`;
+      } else if(cfg.many === "limit1"){
+        opsHere += 1; ops += 1;
+        hit = found[0]; apply(hit, rec);
+        out = "updatedOne";
+        detail = `Limit 1 cut the search to row ${hit.row}. That row is now current; row ${found[1].row} still holds the old values and nobody has been told.`;
+      } else {
+        opsHere += 1; ops += 1;
+        hit = null; out = "held";
+        review.push({rec, why:`${found.length} matching rows`});
+        detail = `The search returned ${found.length} rows, so nothing was written. The record went to a review sheet for a person to settle.`;
+      }
+    }
+    if(!out) out = "updated";
+    rows.push(mk(rec, describeFound(cfg, rec, sheet), out, detail, grade(out, hit, t), opsHere));
+  }
+  return {sheet, rows, review, ops, score: rows.filter(r => r.grade === "right").length};
+}
+
+function apply(r, rec){
+  r.name = rec.name;
+  r.email = String(rec.email).trim();
+  r.plan = rec.plan;
+  r.last = "2026-10-13";
+  r.changed = true;
+}
+
+function describeFound(cfg, rec, sheet){
+  const f = search(cfg.key, rec, SHEET0);
+  return f.length === 0 ? "0 rows" : f.length === 1 ? `1 row (row ${f[0].row})` : `${f.length} rows (${f.map(x => "row " + x.row).join(", ")})`;
+}
+
+function grade(out, hit, t){
+  if(t.act === "hold")   return out === "held" ? "right" : (out === "dropped" ? "partial" : "wrong");
+  if(t.act === "create") return out === "created" ? "right" : "wrong";
+  /* update */
+  if(out === "updated"    && hit && hit.row === t.row) return "right";
+  if(out === "updatedOne" && hit && hit.row === t.row) return "partial";
+  if(out === "updatedMany") return "partial";
+  return "wrong";
+}
+
+function mk(rec, found, out, detail, grade, ops){
+  return {n:rec.n, who:rec.name, found, out, detail, grade, ops};
+}
+
+if(typeof module !== "undefined") module.exports = {SHEET0, QUEUE, TRUTH, run, search, norm};
+
+const STEPS = [
+{
+ id:"s1", good:"emailNorm", n:"Step 1", field:"key", title:"What do you match on?",
+ teach:"A search module needs something to look the record up by. Make's own description of the module type: <em>“A Search module helps you to get specific data from a service such as records, profiles, or other objects.”</em> Which column in the Contacts sheet identifies a person well enough to find them again?",
+ opts:[
+  {v:"row",       t:"The row number",                      s:"Record 1 goes to row 1, record 2 to row 2, and so on."},
+  {v:"name",      t:"The name column",                     s:"Find the row whose name matches exactly."},
+  {v:"email",     t:"The email column, exactly as it arrives", s:"Find the row whose email string is identical."},
+  {v:"emailNorm", t:"The email column, trimmed and lowercased first", s:"Strip spaces and case before comparing."}],
+ said:{
+  row:"<p><strong>Row numbers are positions, not identities.</strong> Every search returned exactly one row, every update succeeded, and the run history is spotless — and you have written Tomás's details over Priya's record and Priya's over Marcus's. Nothing told you. Row numbers shift the first time somebody sorts the sheet, and they have no relationship at all to who is in the incoming record.</p>",
+  name:"<p><strong>Names are not stable and not unique.</strong> Dana changed hers, so the search found nothing and you now have two Danas. Marcus is in the sheet twice, so the search found two rows. A name is how people refer to each other, not how a system identifies them.</p>",
+  email:"<p><strong>Closer — an email address really is an identifier.</strong> But Priya's arrived with a leading space and a capital P, and an exact string comparison does not care that a human can see they are the same address. The search returned nothing for her.</p>",
+  emailNorm:"<p><strong>This is the one.</strong> Trimming and lowercasing before the comparison turns “&nbsp;Priya.Raman@example.org&nbsp;” into the same string as the one in the sheet. Do the normalising on both sides, every time, and do it in the search itself rather than hoping the data arrives clean.</p>"},
+ next:"Look at Tomás. He is not in the sheet at all, and whatever you matched on, his search had nothing to return. Step 2 is about what happens next."
+},
+{
+ id:"s2", good:"true", n:"Step 2", field:"nores", title:"What happens when the search finds nothing?",
+ teach:"Make's rule is blunt: a module that produces no bundles passes nothing downstream. On the execution flow page — <em>“If it does not return any bundles, the scenario does not continue.”</em> For a search in the middle of a scenario, that means the route simply ends for that record. No error. No red. Nothing in the history that looks different from a success.",
+ opts:[
+  {v:"false", t:"Leave the default — the route stops", s:"Nothing downstream runs for that record."},
+  {v:"true",  t:"Continue the execution of the route even if the module returns no results", s:"The route carries on with an empty result."}],
+ said:{
+  "false":"<p><strong>This is the silent failure from Week 6, wearing a different costume.</strong> The record did not error, it did not get written, and it did not get logged. If this were a renewal notice, the person would simply not be contacted, and the first evidence would be a phone call weeks later.</p>",
+  "true":"<p><strong>The route now continues — which is necessary and not yet sufficient.</strong> Carrying on with an empty search result only helps if something downstream knows what to do with “nothing found.” Right now the update module is being handed a row that does not exist, which is exactly the case Make describes as a missing-data error: the input bundle is missing required data because you mapped it from <em>“a search module that didn't return any results.”</em></p>"},
+ next:"So continuing is not the fix on its own. Step 3 is the fix."
+},
+{
+ id:"s3", good:"router", n:"Step 3", field:"after", title:"What do you do after the search?",
+ teach:"You have two different jobs depending on what the search found, and that is a branch. You already know how to build one — this is the Week 6 router, used for the most common pattern in business automation: <strong>update the record if it exists, create it if it does not</strong>.",
+ opts:[
+  {v:"updateOnly", t:"One update module after the search", s:"Assume there is always a row to write to."},
+  {v:"router",     t:"A router: found → update, not found → add a row", s:"Two branches, chosen by whether the search returned anything."}],
+ said:{
+  updateOnly:"<p><strong>This only works when every record already exists</strong> — which is true in testing, because you test with people who are in the sheet, and false in production the first time somebody new arrives.</p>",
+  router:"<p><strong>That is the update-or-create pattern,</strong> and it is most of what business automation does with stored data. Tomás now gets a row instead of an error. Note what it cost: one more operation, and one more branch to maintain.</p>"},
+ next:"Now look at Marcus. His search returned two rows, because somebody entered him twice a year apart. Step 4."
+},
+{
+ id:"s4", good:"review", part:"limit1", n:"Step 4", field:"many", title:"Two rows came back. Now what?",
+ teach:"Make's documentation says plainly that <em>“Search or List modules usually return several bundles because there are multiple objects to retrieve,”</em> and that when a module produces several bundles <em>“the bundles will then go through each proceeding module one-by-one.”</em> Two rows means everything after the search runs twice. People expect once.",
+ opts:[
+  {v:"each",   t:"Let it run for each row",           s:"Both rows get written. Operations double."},
+  {v:"limit1", t:"Set the search's Limit to 1",       s:"Only the first matching row comes back."},
+  {v:"review", t:"Write it to a review sheet and don't update", s:"A person settles which row is right."}],
+ said:{
+  each:"<p><strong>Watch the operations count.</strong> Everything downstream ran twice for one incoming record. Both of Marcus's rows now hold the same values, which is tidier than it was but still two records for one person — and the next run will do it all again. On a free plan this is also how an operations budget disappears.</p>",
+  limit1:"<p><strong>Limit 1 makes the run predictable, not correct.</strong> Workfront Fusion, which runs the same engine, describes the field as setting <em>“the maximum number of search results”</em> returned in one cycle. One row is now current. The other still holds last year's values, nobody has been told it exists, and your scenario will keep quietly choosing one of the two forever.</p>",
+  review:"<p><strong>This is the honest answer.</strong> Two rows for one person is a data problem, and a scenario cannot decide which one is real. Writing the conflict somewhere a human looks is not a failure to automate — it is the automation telling you something it is not entitled to guess.</p>"},
+ next:"One record left. Leah's form submission has no email address at all."
+},
+{
+ id:"s5", good:"true", n:"Step 5", field:"guard", title:"The key is blank",
+ teach:"The form's email field was not required, so Leah's arrived empty. A search for an empty string matches nothing, and you already know what the scenario does with nothing — it either stops or, now that you have a router, happily creates a brand-new contact with no email address. Leah is already in the sheet.",
+ opts:[
+  {v:"false", t:"No guard — let it through", s:"Whatever the search does with a blank key, that is what happens."},
+  {v:"true",  t:"Filter out blank keys before the search", s:"Records with no key never reach the search."}],
+ said:{
+  "false":"<p><strong>You have just created a second Leah with no email address,</strong> and the next submission will create a third. This is how a contact list of four hundred becomes a contact list of six hundred over a year, and why nobody trusts it afterwards. Make's own guidance names the same remedy: a filter, or the <span class=\"mono\">ifempty</span> function, to stop it before it starts.</p>",
+  "true":"<p><strong>Blocked before it cost anything.</strong> Note the operations column: the filter is free, and the search never ran. A guard on the field your scenario depends on is the cheapest reliability you can buy — and it has to be on <em>that</em> field. A blank-email guard does nothing for you if you are matching on names.</p>"},
+ next:"That is the whole pattern. Run it once more below with everything set the way you want it."
+}
+];
+
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const NAIVE = {key:"row", nores:false, after:"updateOnly", many:"each", guard:false};
+const BEST  = {key:"emailNorm", nores:true, after:"router", many:"review", guard:true};
+const FIELDS = ["key","nores","after","many","guard"];
+const COERCE = v => v === "true" ? true : v === "false" ? false : v;
+
+const state = {cfg:{...NAIVE}, done:{}, picked:{}, runs:0, best:0, fp:{...NAIVE}};
+
+/* ---------- static tables ---------- */
+const showEmail = e => e === "" ? '<span class="note">(blank)</span>'
+  : esc(e).replace(/^ +| +$/g, m => '<span class="ws">'+m.replace(/ /g,"·")+'</span>');
+
+document.getElementById("sheetBefore").innerHTML = SHEET0.map(r=>
+  `<tr><td class="k">${r.row}</td><td>${esc(r.name)}</td><td class="m">${esc(r.email)}</td>
+   <td>${esc(r.plan)}</td><td class="m">${esc(r.last)}</td></tr>`).join("");
+
+document.getElementById("queueTbl").innerHTML = QUEUE.map(q=>
+  `<tr><td class="k">${q.n}</td><td>${esc(q.name)}<div class="note">${esc(q.note)}</div></td>
+   <td class="m">${showEmail(q.email)}</td><td>${esc(q.plan)}</td></tr>`).join("");
+
+/* ---------- rail ---------- */
+document.getElementById("rail").innerHTML =
+  STEPS.map(s=>`<div class="rail-grp"><span class="rail-name">${esc(s.n)}</span>
+    <span class="pips" id="p-${s.id}"><span class="pip"></span></span></div>`).join("")
+  + `<span class="rail-score" id="railScore">best run 0 / 5</span>`;
+
+/* ---------- steps ---------- */
+document.getElementById("steps").innerHTML = STEPS.map((s,i)=>`
+  <div class="step ${i===0?"":"locked"}" id="st-${s.id}">
+    <div class="step-n">${esc(s.n)}</div>
+    <h3>${esc(s.title)}</h3>
+    <p class="teach">${s.teach}</p>
+    <div class="opts" id="o-${s.id}">
+      ${s.opts.map((o,j)=>`<button class="opt" data-s="${s.id}" data-v="${esc(o.v)}">
+        <span class="box" aria-hidden="true">${String.fromCharCode(65+j)}</span>
+        <span class="txt">${esc(o.t)}<em>${esc(o.s)}</em></span></button>`).join("")}
+    </div>
+    <div class="acts"><button class="go" data-run="${s.id}" disabled>Run the queue</button></div>
+    ${i===0?"":'<p class="lockmsg">Finish the step above first</p>'}
+    <div class="res" id="r-${s.id}" style="display:none"></div>
+  </div>`).join("");
+
+/* ---------- free play controls ---------- */
+document.getElementById("cfgGrid").innerHTML = STEPS.map(s=>`
+  <div><label for="fp-${s.field}">${esc(s.title)}</label>
+   <select id="fp-${s.field}" data-fp="${s.field}">
+     ${s.opts.map(o=>`<option value="${esc(o.v)}">${esc(o.t)}</option>`).join("")}
+   </select></div>`).join("");
+
+/* ---------- rendering a run ---------- */
+const OUTLABEL = {updated:"Updated", updatedMany:"Updated ×n", updatedOne:"Updated one",
+  created:"Added a row", dropped:"Dropped", errored:"Error", held:"Held"};
+
+function renderRun(res, cfg){
+  const wrong = res.rows.filter(r=>r.grade==="wrong").length;
+  const part  = res.rows.filter(r=>r.grade==="partial").length;
+  const silent= res.rows.filter(r=>r.out==="dropped").length;
+  const strip = `<div class="strip">
+    <div><div class="k">Handled right</div><div class="v ${res.score===5?"good":""}">${res.score}<span style="font-size:14px;color:var(--ink-3)">/5</span></div></div>
+    <div><div class="k">Wrong</div><div class="v ${wrong?"bad":""}">${wrong}</div></div>
+    <div><div class="k">Partly right</div><div class="v ${part?"warn":""}">${part}</div></div>
+    <div><div class="k">Silently dropped</div><div class="v ${silent?"bad":""}">${silent}</div></div>
+    <div><div class="k">Operations</div><div class="v">${res.ops}</div></div>
+    <div><div class="k">Errors raised</div><div class="v">${res.rows.filter(r=>r.out==="errored").length}</div></div>
+  </div>`;
+  const tbl = `<table class="runtbl">
+    <colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup>
+    <thead><tr><th>#</th><th>Record</th><th>Search found</th>
+    <th>What happened</th><th>Ops</th><th>Verdict</th></tr></thead><tbody>
+    ${res.rows.map(r=>`<tr><td class="k">${r.n}</td><td>${esc(r.who)}</td><td class="f">${esc(r.found)}</td>
+      <td><strong style="color:var(--ink)">${OUTLABEL[r.out]||r.out}</strong>
+        <div class="note" style="font-style:normal;color:var(--ink-3);font-size:12.5px;margin-top:3px">${esc(r.detail)}</div></td>
+      <td class="k">${r.ops}</td>
+      <td><span class="pill ${r.grade}">${r.grade==="right"?"right":r.grade==="partial"?"partly":"wrong"}</span></td></tr>`).join("")}
+  </tbody></table>`;
+  const after = `<div class="pane" style="margin-bottom:16px">
+    <h3><span>Contacts &mdash; after the run</span><span class="cnt">${res.sheet.length} rows${res.review.length?" · "+res.review.length+" held":""}</span></h3>
+    <table class="dt"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Plan</th><th>Last seen</th></tr></thead><tbody>
+    ${res.sheet.map(r=>`<tr class="${r.added?"new":r.changed?"chg":""}"><td class="k">${r.row}</td>
+      <td>${esc(r.name)}</td><td class="m">${r.email===""?'<span class="note">(blank)</span>':esc(r.email)}</td>
+      <td>${esc(r.plan)}</td><td class="m">${esc(r.last)}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  return strip + tbl + after;
+}
+
+/* ---------- interaction ---------- */
+document.addEventListener("click", e=>{
+  const opt = e.target.closest(".opt[data-s]");
+  if(opt && !opt.disabled){
+    const {s:sid, v} = opt.dataset;
+    const box = document.getElementById("o-"+sid);
+    box.querySelectorAll(".opt").forEach(b=>b.classList.remove("sel"));
+    opt.classList.add("sel");
+    state.picked[sid] = v;
+    document.querySelector(`[data-run="${sid}"]`).disabled = false;
+    persist(); return;
+  }
+  const run_ = e.target.closest("[data-run]");
+  if(run_) doStep(run_.dataset.run);
+});
+
+function doStep(sid){
+  const s = STEPS.find(x=>x.id===sid);
+  const v = state.picked[sid];
+  if(v === undefined) return;
+  state.cfg[s.field] = COERCE(v);
+  const res = run(state.cfg);
+  state.runs++;
+  state.best = Math.max(state.best, res.score);
+  state.done[sid] = true;
+
+  const box = document.getElementById("r-"+sid);
+  box.style.display = "";
+  box.innerHTML = renderRun(res, state.cfg)
+    + `<div class="verd"><div class="tag" style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+         letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--accent);margin-bottom:6px">
+         ${res.score} of 5 handled correctly</div>
+       ${s.said[v]}
+       <div class="onward">${esc(s.next)}</div></div>`;
+
+  document.getElementById("p-"+sid).children[0].className =
+    "pip " + (String(v) === s.good ? "done" : (s.part && String(v) === s.part) ? "here" : "miss");
+
+  const i = STEPS.findIndex(x=>x.id===sid);
+  if(i+1 < STEPS.length){
+    const nx = document.getElementById("st-"+STEPS[i+1].id);
+    nx.classList.remove("locked");
+    const lm = nx.querySelector(".lockmsg"); if(lm) lm.remove();
+  }
+  FIELDS.forEach(f=>{ const el=document.getElementById("fp-"+f); if(el) el.value = String(state.cfg[f]); });
+  state.fp = {...state.cfg};
+  update(); persist();
+  if(!restoring){
+    try{ const v2=box.querySelector(".verd");
+      if(v2 && typeof v2.scrollIntoView==="function") v2.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
+  }
+}
+
+/* ---------- free play ---------- */
+function readFp(){
+  const c = {};
+  FIELDS.forEach(f=>{ const el=document.getElementById("fp-"+f); c[f]=COERCE(el.value); });
+  return c;
+}
+function fpRun(){
+  state.fp = readFp();
+  const res = run(state.fp);
+  state.runs++; state.best = Math.max(state.best, res.score);
+  document.getElementById("fpRes").innerHTML = renderRun(res, state.fp);
+  update(); persist();
+}
+document.getElementById("fpRun").addEventListener("click", fpRun);
+document.getElementById("fpBest").addEventListener("click", ()=>{
+  FIELDS.forEach(f=>{ document.getElementById("fp-"+f).value = String(BEST[f]); }); fpRun(); });
+document.getElementById("fpWorst").addEventListener("click", ()=>{
+  FIELDS.forEach(f=>{ document.getElementById("fp-"+f).value = String(NAIVE[f]); }); fpRun(); });
+FIELDS.forEach(f=>{ const el=document.getElementById("fp-"+f); el.value = String(NAIVE[f]);
+  el.addEventListener("change", persist); });
+
+function update(){
+  const n = Object.keys(state.done).length;
+  document.getElementById("tSteps").innerHTML = n+'<span style="font-size:15px;color:var(--ink-3)">/5</span>';
+  document.getElementById("tBest").innerHTML = state.best+'<span style="font-size:15px;color:var(--ink-3)">/5</span>';
+  document.getElementById("tRuns").textContent = state.runs;
+  document.getElementById("railScore").textContent = "best run "+state.best+" / 5";
+}
+
+/* ---------- download / copy ---------- */
+function ghDownload(filename, text){
+  try{
+    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=filename; a.style.display="none";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1500); return true;
+  }catch(e){ return false; }
+}
+function ghCopy(text,msgEl,okText){
+  const done=ok=>{msgEl.className=ok?"good":"bad";
+    msgEl.textContent=ok?okText:"Couldn't copy automatically. Select the text and copy it manually.";};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>done(true),()=>done(false));
+  }else{
+    try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");
+      ta.style.position="absolute";ta.style.left="-9999px";document.body.appendChild(ta);ta.select();
+      const ok=document.execCommand("copy");document.body.removeChild(ta);done(ok);
+    }catch(e){done(false);}
+  }
+}
+const label = (sid, v) => {
+  const s = STEPS.find(x=>x.id===sid); const o = s.opts.find(x=>x.v===String(v));
+  return o ? o.t : String(v);
+};
+function asText(){
+  persist();
+  const name=document.getElementById("who").value.trim()||"(no name)";
+  const sect=document.getElementById("sect").value||"(no section)";
+  let out="INAI 5100 - The Data Lab\nName: "+name+"    Section: "+sect+"\n";
+  out+="\nSteps completed: "+Object.keys(state.done).length+" of 5    Best run: "+state.best+" of 5    Runs: "+state.runs+"\n";
+  out+="\n"+"=".repeat(60)+"\nTHE SCENARIO YOU BUILT\n";
+  STEPS.forEach(s=>{
+    out+="\n"+s.n+" - "+s.title+"\n  You chose: "+
+      (state.done[s.id] ? label(s.id, state.picked[s.id]) : "(not run)")+"\n";
+  });
+  const res = run(state.fp);
+  out+="\n"+"=".repeat(60)+"\nFINAL RUN\n";
+  STEPS.forEach(s=>{ out+="  "+s.title+"  ->  "+label(s.id, state.fp[s.field])+"\n"; });
+  out+="\n  Handled correctly: "+res.score+" of 5    Operations: "+res.ops+
+       "    Held for review: "+res.review.length+"\n";
+  res.rows.forEach(r=>{
+    out+="    #"+r.n+" "+r.who+" - search found "+r.found+" -> "+(OUTLABEL[r.out]||r.out)+" ["+r.grade+"]\n";
+  });
+  out+="\n  Contacts after the run:\n";
+  res.sheet.forEach(r=>{
+    out+="    row "+r.row+"  "+r.name+"  |  "+(r.email||"(blank)")+"  |  "+r.plan+"  |  "+r.last+
+         (r.added?"   <- added":r.changed?"   <- changed":"")+"\n";
+  });
+  out+="\n"+"=".repeat(60)+"\nYOUR OWN DATA\n";
+  out+="\nWhat would you match on, and why?\n  "+(document.getElementById("r1").value.trim()||"(not answered)")+"\n";
+  out+="\nWhich of the five records is most likely to turn up in your data?\n  "+(document.getElementById("r2").value.trim()||"(not answered)")+"\n";
+  return out;
+}
+document.getElementById("dlBtn").addEventListener("click", ()=>{
+  const msg=document.getElementById("dlMsg"); msg.className=""; msg.textContent="";
+  const name=document.getElementById("who").value.trim();
+  if(!name){msg.className="bad";msg.textContent="Add your name first.";document.getElementById("who").focus();return;}
+  if(!document.getElementById("sect").value){msg.className="bad";msg.textContent="Choose your section.";document.getElementById("sect").focus();return;}
+  const safe=name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"data-lab";
+  if(ghDownload("data-lab-"+safe+".txt", asText())){msg.className="good";msg.textContent="Downloaded.";}
+  else {msg.className="bad";msg.textContent="Your browser blocked the download. Use “Copy instead”.";}
+});
+document.getElementById("cpBtn").addEventListener("click", ()=>{
+  const msg=document.getElementById("dlMsg"); msg.className=""; msg.textContent="";
+  if(!document.getElementById("who").value.trim()){msg.className="bad";msg.textContent="Add your name first.";document.getElementById("who").focus();return;}
+  ghCopy(asText(), msg, "Copied. Paste it wherever you need it.");
+});
+
+/* ---------- remember ---------- */
+const BK="inai5100-datalab";
+let restoring = false;
+function persist(){
+  if(restoring) return;
+  try{ localStorage.setItem(BK, JSON.stringify({picked:state.picked, done:state.done,
+    runs:state.runs, best:state.best, fp:readFp(),
+    who:document.getElementById("who").value, sect:document.getElementById("sect").value,
+    r1:document.getElementById("r1").value, r2:document.getElementById("r2").value})); }catch(e){}
+}
+(function restore(){
+  let d; try{ d=JSON.parse(localStorage.getItem(BK)||""); }catch(e){ return; }
+  if(!d) return;
+  restoring = true;
+  if(d.who)  document.getElementById("who").value=d.who;
+  if(d.sect) document.getElementById("sect").value=d.sect;
+  if(d.r1)   document.getElementById("r1").value=d.r1;
+  if(d.r2)   document.getElementById("r2").value=d.r2;
+  STEPS.forEach(s=>{
+    const v = d.picked && d.picked[s.id];
+    if(v === undefined) return;
+    const b = document.querySelector(`.opt[data-s="${s.id}"][data-v="${v}"]`);
+    if(!b) return;
+    b.classList.add("sel"); state.picked[s.id]=v;
+    const rb=document.querySelector(`[data-run="${s.id}"]`); if(rb) rb.disabled=false;
+    if(d.done && d.done[s.id]) doStep(s.id);
+  });
+  state.runs = Number(d.runs)||state.runs;
+  state.best = Math.max(state.best, Number(d.best)||0);
+  if(d.fp) FIELDS.forEach(f=>{ const el=document.getElementById("fp-"+f);
+    if(el && d.fp[f]!==undefined) el.value = String(d.fp[f]); });
+  state.fp = readFp();
+  restoring = false;
+  update();
+})();
+update();
+["who","sect","r1","r2"].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener("input",persist); el.addEventListener("change",persist);
+});
+
+</script>
+</body>
+</html>
