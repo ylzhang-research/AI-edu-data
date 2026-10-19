@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Seven sections of a business case for an automation, written for one real person at one real organization.">
+<title>The Business Case</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+
+
+:root{
+  --ink:#16202B; --ink-2:#3D4E5C; --ink-3:#6B7F8D;
+  --paper:#F2F5F6; --surface:#FFFFFF; --surface-2:#E9EFF1;
+  --rule:#D3DDE2; --rule-strong:#B4C3CB;
+  --accent:#0F6E6E; --accent-2:#0B5555; --accent-soft:#E0EFEE;
+  --keep:#9C5A00; --keep-soft:#FBEEDC;
+  --auto:#2C6349; --auto-soft:#E2EFE8;
+  --stop:#9B2C2C; --stop-soft:#F8E7E7;
+  --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px -12px rgba(22,32,43,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+    --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+    --rule:#2A3742; --rule-strong:#3B4B58;
+    --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+    --keep:#D89A4A; --keep-soft:#31251A;
+    --auto:#68B08C; --auto-soft:#16281F;
+    --stop:#DE8585; --stop-soft:#301A1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EDF1; --ink-2:#AFC0CB; --ink-3:#7D919F;
+  --paper:#0E151B; --surface:#161F27; --surface-2:#1D2831;
+  --rule:#2A3742; --rule-strong:#3B4B58;
+  --accent:#57BDB4; --accent-2:#7FD3CB; --accent-soft:#13302F;
+  --keep:#D89A4A; --keep-soft:#31251A;
+  --auto:#68B08C; --auto-soft:#16281F;
+  --stop:#DE8585; --stop-soft:#301A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ---------- masthead ---------- */
+header.mast{border-bottom:1px solid var(--rule);background:var(--surface)}
+.mast-in{max-width:1200px;margin:0 auto;padding:22px 24px 20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 6px}
+h1{font-size:29px;line-height:1.14;margin:0;font-weight:600;letter-spacing:-.017em;text-wrap:balance}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:15px;max-width:60ch}
+.idbox{display:flex;flex-direction:column;gap:5px;min-width:214px}
+.idbox label{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.idrow{display:flex;gap:8px}
+input[type=text],select{
+  font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);
+  color:var(--ink);min-width:0;width:100%}
+input[type=text]:focus-visible,select:focus-visible,button:focus-visible,.opt:focus-visible{
+  outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* ---------- progress rail ---------- */
+.rail{background:var(--surface-2);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40}
+.rail-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;gap:26px;
+  align-items:center;overflow-x:auto}
+.rail-grp{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.rail-name{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.pips{display:flex;gap:4px}
+.pip{width:22px;height:6px;border-radius:1px;background:var(--rule-strong);transition:background .18s}
+.pip.done{background:var(--auto)}
+.pip.miss{background:var(--stop)}
+.pip.here{background:var(--accent)}
+.rail-score{margin-left:auto;flex:0 0 auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;color:var(--ink-2);white-space:nowrap}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;margin:26px 0 0;box-shadow:var(--shadow)}
+.intro h2{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.intro p{margin:0 0 10px;color:var(--ink-2);font-size:15px;max-width:74ch}
+.intro p:last-child{margin-bottom:0}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:16px}
+.howto div{border-left:3px solid var(--accent);padding:2px 0 2px 12px}
+.howto b{display:block;font-size:13.5px;margin-bottom:2px}
+.howto span{font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- case ---------- */
+.case{margin-top:34px;scroll-margin-top:64px}
+.case-head{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:18px}
+.case-kick{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.case-head h2{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.case-head .org{margin:4px 0 0;color:var(--ink-3);font-size:14px;
+  font-family:"IBM Plex Mono",monospace}
+.case-body{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:920px){.case-body{grid-template-columns:1fr}}
+
+/* dossier */
+.dossier{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:921px){.dossier{position:sticky;top:60px}}
+.dossier h3{margin:0;padding:12px 16px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.dossier .ctx{padding:14px 16px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.maptable{width:100%;border-collapse:collapse;font-size:13px}
+.maptable th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 10px;border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.maptable td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.maptable tr:last-child td{border-bottom:none}
+.maptable td.n{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;width:26px}
+.maptable td.w{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;font-size:12px}
+.maptable tr.waits{background:var(--keep-soft)}
+.maptable tr.waits td.w{color:var(--keep);font-weight:600}
+.dossier .note{padding:12px 16px;font-size:13px;color:var(--ink-3);border-top:1px solid var(--rule);
+  background:var(--surface-2)}
+
+/* decisions */
+.decks{display:flex;flex-direction:column;gap:16px}
+.dec{background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:18px 20px;box-shadow:var(--shadow)}
+.dec.locked{opacity:.55}
+.dec-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dec h4{margin:5px 0 4px;font-size:17.5px;font-weight:600;letter-spacing:-.01em;line-height:1.32;text-wrap:balance}
+.dec .hint{margin:0 0 13px;font-size:14px;color:var(--ink-2)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:13px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;
+  font:inherit;color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);
+  border-radius:4px;margin-top:2px;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* verdict */
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);
+  padding:13px 16px;border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verdict p:last-child{margin-bottom:0}
+.verdict strong{color:var(--ink);font-weight:600}
+
+/* ---------- summary ---------- */
+.summary{margin-top:44px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:8px;padding:26px;box-shadow:var(--shadow)}
+.summary h2{margin:0 0 6px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.summary .lede{margin:0 0 20px;color:var(--ink-2);font-size:15px;max-width:70ch}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.reflect{margin-bottom:20px}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;
+  padding:11px 12px;border:1px solid var(--rule-strong);border-radius:6px;
+  background:var(--surface);color:var(--ink);resize:vertical;min-height:92px}
+textarea:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:74ch;
+  border-left:3px solid var(--keep);padding-left:12px}
+#submitMsg{margin-top:12px;font-size:14.5px}
+#submitMsg.good{color:var(--auto);font-weight:600}
+#submitMsg.bad{color:var(--stop)}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+
+
+.hero{max-width:1200px;margin:0 auto;padding:40px 24px 24px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:18ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:66ch}
+.nav{display:flex;gap:9px;flex-wrap:wrap}
+a.gobtn{display:inline-block;font-size:14px;font-weight:600;padding:10px 18px;border-radius:6px;
+  background:var(--accent);color:#fff;text-decoration:none;border:1px solid var(--accent);white-space:nowrap}
+:root[data-theme="dark"] a.gobtn{color:#0E151B}
+a.gobtn.alt{background:transparent;color:var(--accent);border-color:var(--rule-strong)}
+a.gobtn.alt:hover{background:var(--accent-soft);border-color:var(--accent)}
+section.blk{margin-top:40px;scroll-margin-top:20px}
+section.blk > h2{margin:0 0 5px;font-size:25px;font-weight:600;letter-spacing:-.018em;
+  border-top:2px solid var(--ink);padding-top:14px}
+section.blk > .say{margin:0 0 18px;font-size:16px;color:var(--ink-2);max-width:72ch}
+.pull{border-left:3px solid var(--accent);padding:4px 0 4px 16px;margin:20px 0 0;
+  font-size:17.5px;line-height:1.45;max-width:68ch}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+
+/* incident */
+.inc{background:var(--surface);border:1px solid var(--rule);border-radius:8px;box-shadow:var(--shadow);
+  overflow:hidden;margin-bottom:18px}
+.inc-head{padding:14px 18px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.inc-n{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;color:var(--accent)}
+.inc-head h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.012em}
+.inc .pad{padding:18px}
+.sym{border-left:3px solid var(--keep);background:var(--keep-soft);padding:12px 15px;border-radius:0 6px 6px 0;
+  margin-bottom:16px}
+.sym .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  font-weight:600;color:var(--keep);margin-bottom:4px}
+.sym p{margin:0;font-size:15px;color:var(--ink)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media (max-width:820px){.panels{grid-template-columns:1fr}}
+.panel{border:1px solid var(--rule);border-radius:7px;overflow:hidden}
+.panel h4{margin:0;padding:9px 13px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.11em;
+  text-transform:uppercase;font-weight:600;color:var(--ink-3);border-bottom:1px solid var(--rule);
+  background:var(--surface-2)}
+.kv{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.75;padding:11px 13px;margin:0;
+  white-space:pre-wrap;color:var(--ink)}
+.kv .k{color:var(--ink-3)}
+.kv .miss{color:var(--stop);font-weight:600}
+.kv .ok{color:var(--auto)}
+.errline{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--stop-soft);
+  color:var(--stop);padding:9px 13px;border-radius:5px;margin:0 0 16px;border:1px solid var(--stop)}
+.errline.none{background:var(--auto-soft);color:var(--auto);border-color:var(--auto)}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--surface);cursor:pointer;text-align:left;width:100%;font:inherit;
+  color:inherit;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--rule-strong);background:var(--surface-2)}
+.opt .box{flex:0 0 auto;width:17px;height:17px;border:1.5px solid var(--rule-strong);border-radius:4px;
+  margin-top:2px;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  line-height:1;color:var(--surface)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent)}
+.opt.right{border-color:var(--auto);background:var(--auto-soft)}
+.opt.right .box{background:var(--auto);border-color:var(--auto)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft)}
+.opt.wrong .box{background:var(--stop);border-color:var(--stop)}
+.opt:disabled{cursor:default}
+.opt .txt{font-size:14.5px;line-height:1.45}
+.opt .txt em{font-style:normal;color:var(--ink-3);display:block;font-size:13px;margin-top:2px}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button.go{font:inherit;font-size:14px;font-weight:600;padding:9px 17px;border-radius:6px;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] button.go{color:#0E151B}
+button.go:hover{background:var(--accent-2);border-color:var(--accent-2)}
+button.go:disabled{opacity:.4;cursor:not-allowed}
+button.ghost{font:inherit;font-size:13.5px;padding:9px 14px;border-radius:6px;border:1px solid var(--rule-strong);
+  background:transparent;color:var(--ink-2);cursor:pointer}
+.verdict{margin-top:14px;border-left:3px solid var(--accent);background:var(--surface-2);padding:13px 16px;
+  border-radius:0 6px 6px 0}
+.verdict .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;margin-bottom:5px}
+.verdict.ok{border-left-color:var(--auto)} .verdict.ok .tag{color:var(--auto)}
+.verdict.no{border-left-color:var(--stop)} .verdict.no .tag{color:var(--stop)}
+.verdict p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)} .verdict p:last-child{margin:0}
+.verdict strong{color:var(--ink)}
+.fixrow{margin-top:13px;padding-top:12px;border-top:1px solid var(--rule)}
+.fixrow .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  font-weight:600;color:var(--accent);margin-bottom:4px}
+.fixrow p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.tally div{background:var(--surface);padding:13px 15px}
+.tally .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+.tally .v{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.02em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:17px 19px;box-shadow:var(--shadow)}
+.card .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600}
+.card h4{margin:5px 0 6px;font-size:17px;font-weight:600}
+.card p{margin:0;font-size:14px;color:var(--ink-2)}
+.privacy{font-size:13.5px;color:var(--ink-3);margin:0 0 15px;max-width:74ch;border-left:3px solid var(--keep);padding-left:12px}
+#dlMsg{margin-top:11px;font-size:14.5px}
+#dlMsg.good{color:var(--auto);font-weight:600} #dlMsg.bad{color:var(--stop)}
+.idbox2{display:grid;grid-template-columns:1fr 160px;gap:10px;margin-bottom:16px}
+@media (max-width:560px){.idbox2{grid-template-columns:1fr}}
+.reflect label{display:block;font-size:15px;font-weight:600;margin-bottom:4px}
+.reflect .q{font-size:14px;color:var(--ink-2);margin-bottom:8px;max-width:74ch}
+textarea{width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;line-height:1.5;padding:11px 12px;
+  border:1px solid var(--rule-strong);border-radius:6px;background:var(--surface);color:var(--ink);
+  resize:vertical;min-height:88px}
+input[type=text],select{font-family:"IBM Plex Sans",sans-serif;font-size:14px;padding:8px 10px;
+  border:1px solid var(--rule-strong);border-radius:5px;background:var(--surface);color:var(--ink);width:100%}
+
+
+/* ---------- handoff audit additions ---------- */
+.hero{max-width:1200px;margin:0 auto;padding:38px 24px 20px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:20ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:68ch}
+
+.told{background:var(--keep-soft);border:1px solid var(--rule);border-left:4px solid var(--keep);
+  border-radius:0 7px 7px 0;padding:15px 18px;margin-bottom:18px}
+.told .who{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--keep);font-weight:600;margin-bottom:5px}
+.told p{margin:0;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.told p em{font-style:italic}
+
+.specs{width:100%;border-collapse:collapse;font-size:13px}
+.specs th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;font-weight:600;
+  padding:9px 12px;border-bottom:1px solid var(--rule);background:var(--surface-2);
+  white-space:nowrap;width:36%;vertical-align:top}
+.specs td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+.specs tr:last-child th,.specs tr:last-child td{border-bottom:none}
+.specs td .mono{color:var(--ink);font-size:12.5px}
+.chain{display:flex;flex-direction:column;gap:5px}
+.chain span{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink);
+  padding-left:14px;position:relative}
+.chain span::before{content:"\2193";position:absolute;left:0;top:-1px;color:var(--ink-3)}
+.chain span:first-child::before{content:"\25B6";font-size:9px;top:2px}
+.empty{color:var(--ink-3);font-style:italic}
+
+/* requisition list */
+.req{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.req .opt .txt{font-size:14.5px}
+.opt.must{border-color:var(--stop);background:var(--stop-soft)}
+.opt.must .box{background:var(--stop);border-color:var(--stop)}
+.opt.gotmust{border-color:var(--auto);background:var(--auto-soft)}
+.opt.gotmust .box{background:var(--auto);border-color:var(--auto)}
+.opt.noise{border-color:var(--rule);background:var(--surface-2);opacity:.78}
+.opt.noise .box{background:var(--ink-3);border-color:var(--ink-3)}
+.opt .tagline{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  letter-spacing:.11em;text-transform:uppercase;font-weight:600;margin-top:6px}
+.opt.gotmust .tagline{color:var(--auto)}
+.opt.must .tagline{color:var(--stop)}
+.opt.noise .tagline{color:var(--ink-3)}
+.opt.useful .tagline{color:var(--keep)}
+.opt.useful{border-color:var(--keep);background:var(--keep-soft)}
+.opt.useful .box{background:var(--keep);border-color:var(--keep)}
+.opt .because{display:block;font-size:13px;color:var(--ink-2);margin-top:4px;line-height:1.45}
+
+.counter{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-3);
+  margin-bottom:12px}
+.counter b{color:var(--ink);font-weight:600}
+
+.fixrow{border-top:1px solid var(--rule);margin-top:11px;padding-top:10px}
+.fixrow .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:4px}
+.fixrow p{margin:0;font-size:14.5px;color:var(--ink-2)}
+
+/* record builder */
+.rec{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-bottom:6px}
+.rec .fld label{display:block;font-size:14.5px;font-weight:600;margin-bottom:3px}
+.rec .fld .q{font-size:13px;color:var(--ink-3);margin-bottom:7px;line-height:1.45}
+.rec .fld textarea{min-height:76px}
+.carry{margin-top:26px;border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:15px 18px;border-radius:0 7px 7px 0}
+.carry .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:5px}
+.carry p{margin:0;font-size:15.5px;color:var(--ink);max-width:76ch}
+
+
+
+/* ---------- data lab additions ---------- */
+.hero{max-width:1200px;margin:0 auto;padding:38px 24px 20px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:20ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:68ch}
+
+.panes{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:980px){.panes{grid-template-columns:1fr}}
+.pane{background:var(--surface);border:1px solid var(--rule);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+.pane > h3{margin:0;padding:11px 15px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);background:var(--surface-2);
+  display:flex;justify-content:space-between;gap:10px;align-items:center}
+.pane > h3 .cnt{color:var(--accent)}
+.dt{width:100%;border-collapse:collapse;font-size:12.5px}
+.dt th{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;font-weight:600;padding:8px 10px;
+  border-bottom:1px solid var(--rule);background:var(--surface-2);white-space:nowrap}
+.dt td{padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+.dt tr:last-child td{border-bottom:none}
+.dt td.k{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);text-align:center;width:30px;
+  font-variant-numeric:tabular-nums}
+.dt td.m{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink);overflow-wrap:anywhere}
+.dt tr.chg td{background:var(--keep-soft)}
+.dt tr.chg td.k{color:var(--keep);font-weight:600}
+.dt tr.new td{background:var(--auto-soft)}
+.dt tr.new td.k{color:var(--auto);font-weight:600}
+.dt .ws{background:var(--stop-soft);border-radius:2px;padding:0 1px}
+.dt .note{color:var(--ink-3);font-style:italic;font-size:11.5px}
+
+/* step cards */
+.step{margin-top:30px;background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;box-shadow:var(--shadow);scroll-margin-top:66px}
+.step.locked{opacity:.45;pointer-events:none;filter:saturate(.4)}
+.step-n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600}
+.step h3{margin:5px 0 9px;font-size:21px;font-weight:600;letter-spacing:-.014em;line-height:1.28}
+.step .teach{margin:0 0 15px;font-size:15px;color:var(--ink-2);max-width:78ch}
+.step .teach em{color:var(--ink)}
+.lockmsg{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);margin:10px 0 0}
+
+/* run results */
+.res{margin-top:18px;border-top:1px solid var(--rule);padding-top:16px}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.strip div{background:var(--surface);padding:10px 12px}
+.strip .k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.strip .v{font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px;letter-spacing:-.02em}
+.strip .v.bad{color:var(--stop)} .strip .v.good{color:var(--auto)} .strip .v.warn{color:var(--keep)}
+
+.runtbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;table-layout:fixed}
+.runtbl th{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;font-weight:600;padding:8px 10px;
+  border-bottom:1px solid var(--rule);background:var(--surface-2)}
+.runtbl td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+.runtbl tr:last-child td{border-bottom:none}
+.runtbl td.k{font-family:"IBM Plex Mono",monospace;color:var(--ink-3);text-align:center;font-variant-numeric:tabular-nums}
+.runtbl td.f{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink);overflow-wrap:anywhere}
+.runtbl col.c0{width:34px} .runtbl col.c1{width:150px} .runtbl col.c2{width:150px}
+.runtbl col.c4{width:46px} .runtbl col.c5{width:84px}
+@media (max-width:860px){
+  .runtbl col.c1{width:110px} .runtbl col.c2{width:104px} .runtbl{font-size:12px}
+}
+.pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;font-weight:600;padding:3px 7px;border-radius:3px;white-space:nowrap}
+.pill.right{background:var(--auto-soft);color:var(--auto)}
+.pill.partial{background:var(--keep-soft);color:var(--keep)}
+.pill.wrong{background:var(--stop-soft);color:var(--stop)}
+
+.verd{border-left:3px solid var(--accent);background:var(--surface-2);padding:13px 16px;border-radius:0 6px 6px 0}
+.verd p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.verd p:last-child{margin-bottom:0}
+.verd strong{color:var(--ink);font-weight:600}
+.verd .onward{border-top:1px solid var(--rule);margin-top:11px;padding-top:10px;font-size:14px;color:var(--ink)}
+
+/* free play */
+.cfggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:18px}
+.cfggrid label{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px;color:var(--ink-2)}
+.carry{margin-top:26px;border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:15px 18px;border-radius:0 7px 7px 0}
+.carry .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:5px}
+.carry p{margin:0;font-size:15.5px;color:var(--ink);max-width:76ch}
+
+
+
+/* ---------- business case builder ---------- */
+.hero{max-width:1200px;margin:0 auto;padding:38px 24px 20px}
+.hero h1{font-size:38px;letter-spacing:-.025em;max-width:20ch}
+.hero .lede{margin:13px 0 0;font-size:17.5px;line-height:1.5;color:var(--ink-2);max-width:68ch}
+
+.sec{margin-top:26px;background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+  padding:22px 24px;box-shadow:var(--shadow);scroll-margin-top:66px}
+.sec-h{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:7px}
+.sec-n{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+.sec h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.013em}
+.sec .pts{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;font-weight:600;color:var(--accent);background:var(--accent-soft);
+  padding:3px 8px;border-radius:3px;white-space:nowrap}
+.sec .prompt{margin:0 0 12px;font-size:14.5px;color:var(--ink-2);max-width:82ch;line-height:1.5}
+.sec .prompt em{color:var(--ink);font-style:normal;font-weight:600}
+.sec textarea{min-height:112px}
+
+.meta{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.wc{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-3)}
+.wc.ok{color:var(--auto)}
+button.ex{font:inherit;font-size:12.5px;padding:5px 11px;border-radius:5px;
+  border:1px solid var(--rule-strong);background:transparent;color:var(--ink-2);cursor:pointer}
+button.ex:hover{border-color:var(--ink-3);color:var(--ink)}
+
+.exbox{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:820px){.exbox{grid-template-columns:1fr}}
+.exbox div{border-radius:6px;padding:12px 14px;font-size:13.5px;line-height:1.5}
+.exbox .w{background:var(--stop-soft);border-left:3px solid var(--stop);color:var(--ink)}
+.exbox .s{background:var(--auto-soft);border-left:3px solid var(--auto);color:var(--ink)}
+.exbox .lb{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;font-weight:600;margin-bottom:5px;display:block}
+.exbox .w .lb{color:var(--stop)} .exbox .s .lb{color:var(--auto)}
+
+.chks{margin-top:13px;border-top:1px solid var(--rule);padding-top:11px}
+.chk{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--ink-2);
+  padding:5px 0;line-height:1.45}
+.chk input[type=checkbox]{margin-top:3px;width:15px;height:15px;accent-color:var(--accent);flex:0 0 auto}
+.chk .mark{flex:0 0 auto;width:15px;height:15px;margin-top:3px;border-radius:3px;display:grid;
+  place-items:center;font-size:10px;font-family:"IBM Plex Mono",monospace;font-weight:700;
+  border:1.5px solid var(--rule-strong);color:transparent}
+.chk .mark.on{background:var(--auto);border-color:var(--auto);color:#fff}
+:root[data-theme="dark"] .chk .mark.on{color:#0E151B}
+.chk .auto{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);margin-left:6px}
+.chk.pass{color:var(--ink)}
+
+.progress{position:sticky;bottom:0;z-index:30;background:var(--surface);
+  border-top:1px solid var(--rule-strong);box-shadow:0 -6px 20px -12px rgba(0,0,0,.35)}
+.progress-in{max-width:1200px;margin:0 auto;padding:11px 24px;display:flex;gap:20px;
+  align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--ink-2)}
+.progress b{color:var(--ink);font-variant-numeric:tabular-nums}
+.progress .sp{margin-left:auto}
+
+.carry2{margin-top:26px;border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:15px 18px;border-radius:0 7px 7px 0}
+.carry2 .tg{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:5px}
+.carry2 p{margin:0;font-size:15.5px;color:var(--ink);max-width:76ch}
+
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <p class="eyebrow">INAI 5100 &middot; Is It Worth It?</p>
+      <h1 style="font-size:25px">The Business Case</h1>
+    </div>
+    <div class="nav">
+      <a class="gobtn alt" href="./cost-baseline.html">The Cost Baseline</a>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <p class="eyebrow">Assignment &middot; 40 points</p>
+  <h1>The Business Case</h1>
+  <p class="lede">Seven sections, written for one real person at one real organization. This is the draft of your Final Project proposal &mdash; what you write here you will carry into Week 13 and build on, so pick a process you actually want to work on.</p>
+</div>
+
+<div class="wrap">
+
+  <section class="blk" style="margin-top:6px">
+    <h2>What a business case is for</h2>
+    <p class="say">It is not a description of a project. It is a document that lets one specific person decide, and it succeeds when they can say yes or no without a meeting. That means it has to contain the things they would otherwise have to ask for &mdash; what it costs, what changes, what it does not fix, and what you would accept as evidence that it failed.</p>
+    <div class="grid2">
+      <div class="card" style="border-color:var(--stop)">
+        <div class="lbl" style="color:var(--stop)">What most proposals do</div>
+        <h4>Argue for the project</h4>
+        <p>Benefits listed, risks hedged, no alternative considered. It reads as advocacy, so the reader's job becomes finding the catch.</p>
+      </div>
+      <div class="card" style="border-color:var(--auto)">
+        <div class="lbl" style="color:var(--auto)">What a good one does</div>
+        <h4>Make the decision easy</h4>
+        <p>The uncomfortable parts are already in it, dealt with. The reader is not defending against you &mdash; they are choosing with you.</p>
+      </div>
+    </div>
+    <p class="pull">Do the Cost Baseline first. Sections 2 and 3 are its output, and writing them without it produces exactly the proposal section 1 warns you about.</p>
+    <div class="howto">
+      <div><b>Seven sections &middot; 35 points</b><span>Five points each, marked by me. The page checks what it can and flags what it cannot &mdash; those flags are guidance, not your grade.</span></div>
+      <div><b>Writing &middot; 5 points</b><span>Does it read as one argument, and would you be comfortable sending it to the person you named in section 1.</span></div>
+      <div><b>Download and upload</b><span>Your download is the submission. You will reuse it in Week 13, so keep a copy.</span></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2>Who is this for?</h2>
+    <p class="say">Name the organization and the one person who would have to approve this. Everything after this is written to them &mdash; not to me, and not to a general audience.</p>
+    <div class="rec" id="whoFor"></div>
+  </section>
+
+  <section class="blk">
+    <h2>The case</h2>
+    <div id="sections"></div>
+  </section>
+
+  <section class="summary" id="saveblock">
+    <h2>Submit</h2>
+    <p class="lede">Download the file and upload it to the Business Case assignment in Canvas. Nothing is submitted from this page itself.</p>
+    <div class="tally">
+      <div><div class="k">Sections written</div><div class="v" id="tSec">0<span style="font-size:15px;color:var(--ink-3)">/7</span></div></div>
+      <div><div class="k">Checks passed</div><div class="v" id="tChk">0<span style="font-size:15px;color:var(--ink-3)">/14</span></div></div>
+      <div><div class="k">Words</div><div class="v" id="tWords">0</div></div>
+      <div><div class="k">Marked by me</div><div class="v">40</div></div>
+    </div>
+    <div class="idbox2">
+      <div><label for="who" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Your name</label>
+        <input type="text" id="who" placeholder="Last, First" autocomplete="name"></div>
+      <div><label for="sect" style="display:block;font-size:14.5px;font-weight:600;margin-bottom:4px">Section</label>
+        <select id="sect"><option value="">Choose&hellip;</option><option value="001">001 &mdash; in class</option><option value="OL1">OL1 &mdash; online</option></select></div>
+    </div>
+    <p class="privacy">Nothing on this page is sent anywhere. Your work stays in your browser until you download it. Keep it general &mdash; describe roles rather than naming people, and do not include anything confidential to your employer. A loaded hourly cost for a role is fine; a named person's salary is not. Never type a password, API key, or client secret into this or any other page. If you used an AI tool, include your prompts in your Canvas submission comment, per the course AI policy.</p>
+    <div class="acts">
+      <button class="go" id="dlBtn">Download my business case</button>
+      <button class="ghost" id="cpBtn">Copy instead</button>
+    </div>
+    <p id="dlMsg"></p>
+    <div class="carry2">
+      <div class="tg">The one thing to carry</div>
+      <p>The section that makes a proposal credible is the one that says what it will not do. Put it in before somebody has to ask for it.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>INAI 5100 &middot; AI in Business Operations &middot; Dr. Lucy Zhang</span>
+    <span class="mono">The Business Case</span>
+  </footer>
+</div>
+
+<div class="progress"><div class="progress-in">
+  <span>Sections <b id="pSec">0</b>/7</span>
+  <span>Checks <b id="pChk">0</b>/14</span>
+  <span>Words <b id="pWords">0</b></span>
+  <span class="sp"><button class="go" id="pDl">Download my business case</button></span>
+</div></div>
+
+<script>
+const NUMWORD = /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|dozen|half)\b/i;
+/* people write quantities as words as often as digits; a guidance check should accept both */
+const hasNum  = v => /\d/.test(v) || NUMWORD.test(v);
+const hasMoney= v => /\$\s?\d|\d+\s?(dollars|k\b)/i.test(v);
+const hasTime = v => /\b\d+(\.\d+)?\s?(hours?|hrs?|minutes?|mins?|days?|weeks?|months?|a year|per year|annually)\b/i.test(v);
+const words   = v => String(v).trim() ? String(v).trim().split(/\s+/).length : 0;
+
+const SECTIONS = [
+{
+ id:"ask", n:"1", pts:5, label:"The ask",
+ prompt:"One or two sentences. What you want, who you need it from, and what it costs them. A reader should be able to say yes or no to this sentence alone, without reading the rest.",
+ ph:"I am asking <role> to approve <what>, which needs <hours/money/permission> and would be live by <when>.",
+ min:20,
+ weak:"“We should look at automating our intake process.”",
+ strong:"“I am asking the operations manager for twenty hours of my time over three weeks to automate invoice coding, and for Finance to agree that the checking step moves to a weekly sample rather than every item.”",
+ checks:[
+  {id:"ask_num",  label:"Names a specific quantity — hours, dollars, or a date", auto:v=>hasNum(v)},
+  {id:"ask_who",  label:"Names the person or role whose approval is needed", auto:null}]
+},
+{
+ id:"today", n:"2", pts:5, label:"What it costs today",
+ prompt:"Your baseline, from the Cost Baseline tool. Volume, time, and annual cost — and be straight about where the numbers came from. A measured number and an estimated one are both fine; a number with no provenance is not.",
+ ph:"We handle about <n> of these a week, at roughly <n> minutes each, which is about $<n> a year in loaded time. These figures came from <where>.",
+ min:35,
+ weak:"“This process takes a lot of time and causes frustration.”",
+ strong:"“We code about 80 invoices a week, six minutes each, plus about four per cent that have to be reopened. That is roughly 485 hours and $18,400 a year in loaded cost. Volume is from the system; the per-item time is the team lead's estimate, and I would want to check it before we commit.”",
+ checks:[
+  {id:"td_money", label:"Contains a dollar figure", auto:v=>hasMoney(v)},
+  {id:"td_src",   label:"Says where the numbers came from", auto:null}]
+},
+{
+ id:"change", n:"3", pts:5, label:"What actually changes",
+ prompt:"Name who stops doing what, and what they do instead. This is the section where a proposal either becomes concrete or stays a wish — and it is the one your Cost Baseline step 5 answer feeds directly.",
+ ph:"<Role> stops doing <task> and starts doing <other task>. The saving is <headcount / redeployed time / capacity / quality>, and what makes that real is&hellip;",
+ min:40,
+ weak:"“This will free up staff time for higher-value work.”",
+ strong:"“The coordinator stops keying 80 invoices a week and starts reviewing a weekly sample of twenty. The time does not come out of headcount — it goes to chasing the exceptions we currently never get to, which is about a day a week of work nobody does today.”",
+ checks:[
+  {id:"ch_who",  label:"Names a role, not “staff” or “the team”", auto:null},
+  {id:"ch_kind", label:"Says which kind of saving it is, and does not call redeployed time a cost saving", auto:null}]
+},
+{
+ id:"notfix", n:"4", pts:5, label:"What it does not fix",
+ prompt:"Name at least two things this will not solve, including anything a reader might assume it solves. Counter-intuitively, this is the section that makes the rest believable — a proposal with no limits reads as a sales pitch.",
+ ph:"This does not fix <x>, and it will not help with <y>. It also leaves <z> exactly as it is today.",
+ min:30,
+ weak:"“There are some minor limitations.”",
+ strong:"“This does not fix the duplicate supplier records — those still have to be cleaned by hand, and if anything the automation makes them more visible. It does not reduce month-end workload, because the bottleneck there is approvals, not coding.”",
+ checks:[
+  {id:"nf_two",  label:"Names at least two specific things", auto:v=>words(v)>=30},
+  {id:"nf_real", label:"Includes something a reader might reasonably have assumed it solved", auto:null}]
+},
+{
+ id:"versus", n:"5", pts:5, label:"Compared to what?",
+ prompt:"Every proposal competes with the alternatives, and the strongest one is usually doing nothing. Deal with at least two: carrying on as we are, doing it better by hand, buying something, or building it.",
+ ph:"Doing nothing costs us <x>. We could instead <alternative>, which would <cost/benefit>. I am recommending this because&hellip;",
+ min:40,
+ weak:"“This is the best option available.”",
+ strong:"“Doing nothing is defensible — the process works and nobody is complaining. Buying the vendor module would cover it, but it is $4,000 a year and we would still be keying the exceptions. Building it ourselves costs twenty hours once and no licence, and we keep the ability to change it when the chart of accounts changes in January.”",
+ checks:[
+  {id:"vs_two",  label:"Deals with at least two alternatives", auto:v=>words(v)>=40},
+  {id:"vs_null", label:"Takes “do nothing” seriously rather than dismissing it", auto:null}]
+},
+{
+ id:"risk", n:"6", pts:5, label:"What could go wrong, and who it lands on",
+ prompt:"Name the failure you actually expect, say how you would find out it had happened, and name who carries the consequence. Vague risk sections are worse than none — they signal you have not thought about it.",
+ ph:"The likeliest failure is <x>. We would find out when <signal>. The person who carries it is <role>, and what I would do about it is&hellip;",
+ min:40,
+ weak:"“There is a risk of errors.”",
+ strong:"“The likeliest failure is a supplier changing their invoice format, which would silently push items to the exception pile instead of coding them. We would find out from the weekly exception count, which is why I would put that number in the Monday report. If it went unnoticed for a month, the person explaining it to the auditor is the controller — so she should see the proposal before I build anything.”",
+ checks:[
+  {id:"rk_sig",  label:"Says how you would find out", auto:null},
+  {id:"rk_who",  label:"Names who carries the consequence", auto:null}]
+},
+{
+ id:"measure", n:"7", pts:5, label:"What you would measure at ninety days",
+ prompt:"Two or three numbers you could actually observe, with a value you expect. Include at least one that would tell you it had <em>not</em> worked — a claim nothing could falsify is not a claim.",
+ ph:"At ninety days I would look at <metric> (expect <value>), <metric> (expect <value>). If <metric> is <value>, that tells me this did not work.",
+ min:35,
+ weak:"“We will monitor adoption and efficiency.”",
+ strong:"“At ninety days: exception rate under eight per cent, time from receipt to coded under one working day, and the coordinator's own estimate of hours spent. If exceptions are still above fifteen per cent, or she is spending the same time as before, it did not work and I would say so.”",
+ checks:[
+  {id:"ms_num",  label:"Contains numbers you could check against", auto:v=>hasNum(v)},
+  {id:"ms_fail", label:"Includes a signal that would mean it failed", auto:null}]
+}
+];
+
+const WRITING = {id:"writing", pts:5, label:"Professional writing and coherence",
+  note:"Marked across the whole document: does it read as one argument, is it free of distracting errors, and would you be comfortable sending it to the person named in section 1."};
+
+const TOTAL = SECTIONS.reduce((n,s)=>n+s.pts,0) + WRITING.pts;
+
+if (typeof module !== "undefined") module.exports = {SECTIONS, WRITING, TOTAL, words, hasNum, hasMoney, hasTime};
+
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MANUAL = {};   // id -> bool, the self-checks
+let restoring = false;
+
+/* ---------- who it is for ---------- */
+const WHOFOR = [
+  {id:"org",    label:"The organization", q:"Your employer, a nonprofit you volunteer with, a business you own. Name it generically if you would rather — “a twelve-van plumbing firm” is fine."},
+  {id:"reader", label:"The person who decides", q:"A role, and what they control. The whole document is written to this person."}
+];
+document.getElementById("whoFor").innerHTML = WHOFOR.map(f=>`
+  <div class="fld">
+    <label for="${f.id}">${esc(f.label)}</label>
+    <p class="q">${esc(f.q)}</p>
+    <textarea id="${f.id}" style="min-height:64px"></textarea>
+  </div>`).join("");
+
+/* ---------- sections ---------- */
+document.getElementById("sections").innerHTML = SECTIONS.map(s=>`
+  <div class="sec" id="sec-${s.id}">
+    <div class="sec-h">
+      <span class="sec-n">${s.n}</span>
+      <h3>${esc(s.label)}</h3>
+      <span class="pts">${s.pts} points</span>
+    </div>
+    <p class="prompt">${s.prompt}</p>
+    <textarea id="t-${s.id}" placeholder="${esc(s.ph).replace(/&amp;hellip;/g,"…")}"></textarea>
+    <div class="meta">
+      <span class="wc" id="wc-${s.id}">0 words &mdash; aim for ${s.min} or more</span>
+      <button class="ex" data-ex="${s.id}">Show a weak and a strong version</button>
+    </div>
+    <div id="ex-${s.id}" style="display:none"></div>
+    <div class="chks" id="ck-${s.id}">
+      ${s.checks.map(c=>c.auto
+        ? `<div class="chk" id="row-${c.id}"><span class="mark" id="mk-${c.id}">&#10003;</span>
+             <span>${esc(c.label)}<span class="auto">checked by the page</span></span></div>`
+        : `<label class="chk" for="cb-${c.id}"><input type="checkbox" id="cb-${c.id}" data-chk="${c.id}">
+             <span>${esc(c.label)}</span></label>`).join("")}
+    </div>
+  </div>`).join("");
+
+/* ---------- examples ---------- */
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-ex]");
+  if(!b) return;
+  const s = SECTIONS.find(x=>x.id===b.dataset.ex);
+  const box = document.getElementById("ex-"+s.id);
+  if(box.style.display === ""){ box.style.display="none"; b.textContent="Show a weak and a strong version"; return; }
+  box.innerHTML = `<div class="exbox">
+    <div class="w"><span class="lb">Weak</span>${esc(s.weak)}</div>
+    <div class="s"><span class="lb">Strong</span>${esc(s.strong)}</div></div>`;
+  box.style.display = "";
+  b.textContent = "Hide the examples";
+});
+
+/* ---------- checks ---------- */
+document.addEventListener("change", e=>{
+  const id = e.target.dataset && e.target.dataset.chk;
+  if(!id) return;
+  MANUAL[id] = e.target.checked;
+  update(); persist();
+});
+
+function sectionState(s){
+  const v = document.getElementById("t-"+s.id).value;
+  const w = words(v);
+  const passed = s.checks.filter(c => c.auto ? c.auto(v) : !!MANUAL[c.id]).length;
+  return {v, w, written: w >= s.min, passed};
+}
+
+function update(){
+  let secs=0, chks=0, total=0;
+  SECTIONS.forEach(s=>{
+    const st = sectionState(s);
+    total += st.w;
+    if(st.written) secs++;
+    chks += st.passed;
+    const wc = document.getElementById("wc-"+s.id);
+    wc.innerHTML = st.w + (st.w===1?" word":" words") +
+      (st.written ? " &mdash; good length" : " &mdash; aim for "+s.min+" or more");
+    wc.className = "wc" + (st.written ? " ok" : "");
+    s.checks.forEach(c=>{
+      if(c.auto){
+        const on = c.auto(st.v);
+        const mk = document.getElementById("mk-"+c.id);
+        const row = document.getElementById("row-"+c.id);
+        if(mk) mk.className = "mark" + (on ? " on" : "");
+        if(row) row.className = "chk" + (on ? " pass" : "");
+      }
+    });
+  });
+  const set=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
+  document.getElementById("tSec").innerHTML = secs+'<span style="font-size:15px;color:var(--ink-3)">/7</span>';
+  document.getElementById("tChk").innerHTML = chks+'<span style="font-size:15px;color:var(--ink-3)">/14</span>';
+  set("tWords", total.toLocaleString("en-US"));
+  set("pSec", secs); set("pChk", chks); set("pWords", total.toLocaleString("en-US"));
+}
+
+/* ---------- download ---------- */
+function ghDownload(filename, text){
+  try{
+    const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=filename; a.style.display="none";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1500); return true;
+  }catch(e){ return false; }
+}
+function ghCopy(text,msgEl,okText){
+  const done=ok=>{msgEl.className=ok?"good":"bad";
+    msgEl.textContent=ok?okText:"Couldn't copy automatically. Select the text and copy it manually.";};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>done(true),()=>done(false));
+  }else{
+    try{const ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");
+      ta.style.position="absolute";ta.style.left="-9999px";document.body.appendChild(ta);ta.select();
+      const ok=document.execCommand("copy");document.body.removeChild(ta);done(ok);
+    }catch(e){done(false);}
+  }
+}
+const strip = s => String(s).replace(/<[^>]*>/g,"").replace(/&mdash;/g,"-").replace(/&hellip;/g,"...")
+  .replace(/&ldquo;|&rdquo;/g,'"').replace(/&eacute;/g,"e").replace(/&amp;/g,"&").replace(/&#10003;/g,"");
+
+function asText(){
+  persist();
+  const name=document.getElementById("who").value.trim()||"(no name)";
+  const sect=document.getElementById("sect").value||"(no section)";
+  let o="INAI 5100 - The Business Case\n";
+  o+="Name: "+name+"    Section: "+sect+"\n";
+  o+="Draft of the Final Project proposal. "+TOTAL+" points.\n";
+  o+="\n"+"=".repeat(62)+"\nWHO THIS IS FOR\n";
+  WHOFOR.forEach(f=>{
+    o+="\n"+f.label+"\n  "+(document.getElementById(f.id).value.trim()||"(not answered)").replace(/\n/g,"\n  ")+"\n";
+  });
+  SECTIONS.forEach(s=>{
+    const st = sectionState(s);
+    o+="\n"+"=".repeat(62)+"\n"+s.n+". "+s.label.toUpperCase()+"   ("+s.pts+" points)\n\n";
+    o+=(st.v.trim()||"(not written)").replace(/\n/g,"\n")+"\n";
+    o+="\n  ["+st.w+" words]\n";
+    s.checks.forEach(c=>{
+      const on = c.auto ? c.auto(st.v) : !!MANUAL[c.id];
+      o+="  ["+(on?"x":" ")+"] "+strip(c.label)+(c.auto?"  (checked by the page)":"  (self-checked)")+"\n";
+    });
+  });
+  o+="\n"+"=".repeat(62)+"\n"+WRITING.label.toUpperCase()+"   ("+WRITING.pts+" points)\n  "+strip(WRITING.note)+"\n";
+  return o;
+}
+function doDownload(){
+  const msg=document.getElementById("dlMsg"); msg.className=""; msg.textContent="";
+  const name=document.getElementById("who").value.trim();
+  if(!name){msg.className="bad";msg.textContent="Add your name first.";
+    document.getElementById("saveblock").scrollIntoView({block:"center"});
+    document.getElementById("who").focus();return;}
+  if(!document.getElementById("sect").value){msg.className="bad";msg.textContent="Choose your section.";
+    document.getElementById("sect").focus();return;}
+  const safe=name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"business-case";
+  const short = SECTIONS.filter(s=>!sectionState(s).written).length;
+  if(ghDownload("BusinessCase_"+safe+".txt", asText())){
+    msg.className="good";
+    msg.textContent = "Downloaded." + (short
+      ? "  Note: "+short+" section"+(short===1?" is":"s are")+" still under the suggested length."
+      : "  All seven sections are written.");
+  } else {msg.className="bad";msg.textContent="Your browser blocked the download. Use “Copy instead”.";}
+}
+document.getElementById("dlBtn").addEventListener("click", doDownload);
+document.getElementById("pDl").addEventListener("click", ()=>{
+  document.getElementById("saveblock").scrollIntoView({behavior:"smooth",block:"start"}); doDownload(); });
+document.getElementById("cpBtn").addEventListener("click", ()=>{
+  const msg=document.getElementById("dlMsg"); msg.className=""; msg.textContent="";
+  if(!document.getElementById("who").value.trim()){msg.className="bad";msg.textContent="Add your name first.";
+    document.getElementById("who").focus();return;}
+  ghCopy(asText(), msg, "Copied. Paste it into a document and upload that.");
+});
+
+/* ---------- remember ---------- */
+const BK="inai5100-businesscase";
+const ALLIDS = SECTIONS.map(s=>"t-"+s.id).concat(WHOFOR.map(f=>f.id), ["who","sect"]);
+function persist(){
+  if(restoring) return;
+  try{
+    const t={}; ALLIDS.forEach(id=>{ const el=document.getElementById(id); if(el) t[id]=el.value; });
+    localStorage.setItem(BK, JSON.stringify({t, manual:MANUAL}));
+  }catch(e){}
+}
+(function restore(){
+  let d; try{ d=JSON.parse(localStorage.getItem(BK)||""); }catch(e){ return; }
+  if(!d) return;
+  restoring = true;
+  if(d.t) ALLIDS.forEach(id=>{ const el=document.getElementById(id);
+    if(el && typeof d.t[id]==="string") el.value=d.t[id]; });
+  if(d.manual) SECTIONS.forEach(s=>s.checks.forEach(c=>{
+    if(c.auto) return;
+    if(d.manual[c.id]){ MANUAL[c.id]=true; const cb=document.getElementById("cb-"+c.id); if(cb) cb.checked=true; }
+  }));
+  restoring = false;
+})();
+ALLIDS.forEach(id=>{
+  const el=document.getElementById(id); if(!el) return;
+  el.addEventListener("input", ()=>{ update(); persist(); });
+  el.addEventListener("change", ()=>{ update(); persist(); });
+});
+update();
+
+</script>
+</body>
+</html>
